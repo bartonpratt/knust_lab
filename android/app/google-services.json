@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "869293093926",
+    "project_id": "knust-lab",
+    "storage_bucket": "knust-lab.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869293093926:android:aa4efc3aac27a07b86e2e7",
+        "android_client_info": {
+          "package_name": "com.example.knust_lab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "869293093926-c2b6u27ajqeimqbtn35c54v60ef1v9g3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBS2KaR1ZXwbEy7-s54fjMhSmZvX1mSshg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "869293093926-c2b6u27ajqeimqbtn35c54v60ef1v9g3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
