@@ -81,6 +81,10 @@ class AuthenticationService {
         await userCollection.doc(userId).update({'fcmToken': token});
         print('FCM Token saved successfully');
       }
+
+      // Update isLoggedIn flag in SharedPreferences
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool('isLoggedIn', true);
     } catch (e) {
       debugPrint('Error saving user details: $e');
     }
@@ -143,6 +147,7 @@ class AuthenticationService {
     try {
       await _firebaseAuth.signOut();
 
+      // Reset isLoggedIn flag in SharedPreferences
       final preferences = await SharedPreferences.getInstance();
       await preferences.setBool('isLoggedIn', false);
     } catch (e) {

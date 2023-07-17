@@ -1,6 +1,8 @@
-//main.dart
+// main.dart
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:knust_lab/screens/authentication_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:knust_lab/api/notification_service.dart';
 import 'package:knust_lab/screens/sign_in.dart';
@@ -20,30 +22,18 @@ void main() async {
   await Firebase.initializeApp();
   await FirebaseAppCheck.instance.activate();
 
-  runApp(MyApp());
+  // Check if the user is already logged in
+  final preferences = await SharedPreferences.getInstance();
+  final isLoggedIn = preferences.getBool('isLoggedIn') ?? false;
+  String initialRoute = isLoggedIn ? '/splash' : '/signin';
+
+  runApp(MyApp(initialRoute));
 }
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
+class MyApp extends StatelessWidget {
+  final String initialRoute;
 
-class _MyAppState extends State<MyApp> {
-  bool isLoggedIn = false;
-
-  @override
-  void initState() {
-    super.initState();
-    checkAuthenticationStatus();
-  }
-
-  Future<void> checkAuthenticationStatus() async {
-    final preferences = await SharedPreferences.getInstance();
-    final loggedIn = preferences.getBool('isLoggedIn') ?? false;
-    setState(() {
-      isLoggedIn = loggedIn;
-    });
-  }
+  MyApp(this.initialRoute);
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +50,10 @@ class _MyAppState extends State<MyApp> {
         brightness: Brightness.dark,
         primaryColor: Colors.blue,
       ),
-      initialRoute: isLoggedIn ? '/dashboard' : '/signin',
+      initialRoute: initialRoute,
       navigatorKey: navigatorKey, // Pass the navigatorKey
       routes: {
+        '/splash': (context) => SplashPage(),
         '/signin': (context) => SignInPage(),
         '/signup': (context) => SignUpPage(),
         '/dashboard': (context) => DashboardPage(),
@@ -71,6 +62,50 @@ class _MyAppState extends State<MyApp> {
         '/profile': (context) => ProfilePage(),
         '/about': (context) => AboutPage(),
       },
+    );
+  }
+}
+
+class SplashPage extends StatefulWidget {
+  @override
+  _SplashPageState createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  final AuthenticationService _authenticationService = AuthenticationService();
+
+  @override
+  void initState() {
+    super.initState();
+    navigateToNextScreen();
+  }
+
+  void navigateToNextScreen() async {
+    // Simulate a delay for the splash screen
+    await Future.delayed(Duration(seconds: 2));
+
+    // Check if the user is already logged in
+    final preferences = await SharedPreferences.getInstance();
+    final isLoggedIn = preferences.getBool('isLoggedIn') ?? false;
+
+    if (isLoggedIn) {
+      final userDetails = await _authenticationService.getCurrentUserDetails();
+      if (userDetails != null && userDetails['role'] == 'admin') {
+        navigatorKey.currentState?.pushReplacementNamed('/admin');
+      } else {
+        navigatorKey.currentState?.pushReplacementNamed('/dashboard');
+      }
+    } else {
+      navigatorKey.currentState?.pushReplacementNamed('/signin');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }

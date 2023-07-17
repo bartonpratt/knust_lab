@@ -180,7 +180,8 @@ class _SignInPageState extends State<SignInPage> {
                             children: <Widget>[
                               Text(
                                 'Don\'t have an account? ',
-                                style: TextStyle(fontSize: 14.0),
+                                style: TextStyle(
+                                    fontSize: 14.0, color: Colors.black),
                               ),
                               GestureDetector(
                                 onTap: () {
