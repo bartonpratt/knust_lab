@@ -1,4 +1,6 @@
+//sign_in.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:knust_lab/screens/sign_up.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'authentication_service.dart';
@@ -13,6 +15,8 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
+  bool _passwordVisible = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -40,8 +44,19 @@ class _SignInPageState extends State<SignInPage> {
 
     try {
       if (email.isNotEmpty && password.isNotEmpty) {
+        setState(() {
+          _isLoading = true;
+          _errorMessage = '';
+        });
+
         final user = await _authenticationService.signInWithEmailAndPassword(
-            email, password);
+          email,
+          password,
+        );
+
+        setState(() {
+          _isLoading = false;
+        });
 
         if (user != null) {
           final preferences = await SharedPreferences.getInstance();
@@ -66,6 +81,7 @@ class _SignInPageState extends State<SignInPage> {
       }
     } catch (error) {
       setState(() {
+        _isLoading = false;
         _errorMessage = 'Sign in error: $error';
       });
     }
@@ -74,7 +90,10 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => false,
+      onWillPop: () async {
+        SystemNavigator.pop(); // Close the app
+        return false; // Prevent further navigation
+      },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         body: Container(
@@ -130,16 +149,29 @@ class _SignInPageState extends State<SignInPage> {
                             controller: _passwordController,
                             decoration: InputDecoration(
                               labelText: 'Password',
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _passwordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _passwordVisible = !_passwordVisible;
+                                  });
+                                },
+                              ),
                             ),
-                            obscureText: true,
+                            obscureText: !_passwordVisible,
                           ),
                           SizedBox(height: 16.0),
                           Container(
-                            width: double
-                                .infinity, // Set the width to occupy the entire space
+                            width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: _signIn,
-                              child: Text('Sign In'),
+                              onPressed: _isLoading ? null : _signIn,
+                              child: _isLoading
+                                  ? CircularProgressIndicator()
+                                  : Text('Sign In'),
                             ),
                           ),
                           SizedBox(height: 8.0),
@@ -155,7 +187,8 @@ class _SignInPageState extends State<SignInPage> {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => SignUpPage()),
+                                      builder: (context) => SignUpPage(),
+                                    ),
                                   );
                                 },
                                 child: Text(

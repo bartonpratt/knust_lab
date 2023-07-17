@@ -1,3 +1,4 @@
+//sign_up.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:knust_lab/screens/authentication_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
+  @override
+  _SignUpPageState createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -14,115 +20,126 @@ class SignUpPage extends StatelessWidget {
   final AuthenticationService _authenticationService = AuthenticationService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  bool _isLoading = false;
+
+  Future<bool> _onBackPressed() {
+    Navigator.pushReplacementNamed(context, '/signin');
+    return Future.value(false); // Prevent default system back navigation
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Container(
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF22223B),
-              Color(0xFFC9ADA7),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return WillPopScope(
+      onWillPop: _onBackPressed,
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Container(
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF22223B),
+                Color(0xFFC9ADA7),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: ListView(
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(16.0, 48.0, 16.0, 0.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/logo-no.png',
-                    width: 100.0,
-                    height: 100.0,
-                  ),
-                  SizedBox(height: 16.0),
-                  Text(
-                    'Create Account!',
-                    style: TextStyle(
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+          child: ListView(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(16.0, 48.0, 16.0, 0.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/logo-no.png',
+                      width: 100.0,
+                      height: 100.0,
                     ),
-                  ),
-                  SizedBox(height: 16.0),
-                  TextField(
-                    controller: _fullNameController,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                    ),
-                  ),
-                  SizedBox(height: 16.0),
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                    ),
-                  ),
-                  SizedBox(height: 16.0),
-                  TextField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                    ),
-                    obscureText: true,
-                  ),
-                  SizedBox(height: 16.0),
-                  TextField(
-                    controller: _hospitalIdController,
-                    decoration: InputDecoration(
-                      labelText: 'Hospital ID',
-                    ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(5),
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                  ),
-                  SizedBox(height: 24.0),
-                  Container(
-                    width: double
-                        .infinity, // Set the width to occupy the entire space
-                    child: ElevatedButton(
-                      onPressed: () => _signUp(context),
-                      child: Text('Sign Up'),
-                    ),
-                  ),
-                  SizedBox(height: 16.0),
-                  RichText(
-                    text: TextSpan(
-                      text: 'Already have an account? ',
+                    SizedBox(height: 16.0),
+                    Text(
+                      'Create Account!',
                       style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 14.0,
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      children: [
-                        TextSpan(
-                          text: 'Sign in',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.none,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.pushReplacementNamed(
-                                  context, '/signin');
-                            },
-                        ),
+                    ),
+                    SizedBox(height: 16.0),
+                    TextField(
+                      controller: _fullNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    TextField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                      ),
+                      obscureText: true,
+                    ),
+                    SizedBox(height: 16.0),
+                    TextField(
+                      controller: _hospitalIdController,
+                      decoration: InputDecoration(
+                        labelText: 'Hospital ID',
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(5),
+                        FilteringTextInputFormatter.digitsOnly,
                       ],
                     ),
-                  ),
-                ],
+                    SizedBox(height: 24.0),
+                    Container(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : () => _signUp(context),
+                        child: _isLoading
+                            ? CircularProgressIndicator()
+                            : Text('Sign Up'),
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Already have an account? ',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14.0,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Sign in',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.none,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                Navigator.pushReplacementNamed(
+                                    context, '/signin');
+                              },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -174,9 +191,17 @@ class SignUpPage extends StatelessWidget {
         return;
       }
 
+      setState(() {
+        _isLoading = true;
+      });
+
       final User? user =
           await _authenticationService.signUpWithEmailAndPassword(
               email, password, fullName, int.parse(hospitalId));
+
+      setState(() {
+        _isLoading = false;
+      });
 
       if (user != null) {
         Navigator.pushReplacementNamed(context, '/dashboard');

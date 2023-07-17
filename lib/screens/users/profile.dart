@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,15 +5,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-class ProfilePage extends StatelessWidget {
-  final ImagePicker _imagePicker = ImagePicker();
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({Key? key}) : super(key: key);
 
-  ProfilePage({Key? key}) : super(key: key);
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final ImagePicker _imagePicker = ImagePicker();
+  late Future<Map<String, dynamic>?> _userDetailsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _userDetailsFuture = _getCurrentUserDetails();
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>?>(
-      future: _getCurrentUserDetails(),
+      future: _userDetailsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
@@ -111,18 +121,18 @@ class ProfilePage extends StatelessWidget {
 
         if (documentSnapshot.exists) {
           final userDetails = documentSnapshot.data() as Map<String, dynamic>;
-          debugPrint('User Details: $userDetails');
+          print('User Details: $userDetails');
           return userDetails;
         } else {
-          debugPrint('User document does not exist');
+          print('User document does not exist');
         }
       } else {
-        debugPrint('User is null');
+        print('User is null');
       }
 
       return null;
     } catch (e) {
-      debugPrint('Error retrieving current user details: $e');
+      print('Error retrieving current user details: $e');
       return null;
     }
   }
@@ -140,13 +150,22 @@ class ProfilePage extends StatelessWidget {
               .ref()
               .child('profile_images/${user.uid}');
           final UploadTask uploadTask = storageReference.putFile(imageFile);
-          await uploadTask.whenComplete(() async {
+
+          // Wait for the upload to complete and get the snapshot
+          final TaskSnapshot taskSnapshot = await uploadTask;
+
+          // Check if the upload was successful
+          if (taskSnapshot.state == TaskState.success) {
             final String imageUrl = await storageReference.getDownloadURL();
             await _updateUserProfileImage(user.uid, imageUrl);
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Image uploaded successfully'),
             ));
-          });
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Error uploading image'),
+            ));
+          }
         }
       } catch (e) {
         debugPrint('Image upload error: $e');

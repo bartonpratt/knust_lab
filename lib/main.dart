@@ -10,12 +10,15 @@ import 'package:knust_lab/screens/admin/admin_panel.dart';
 import 'package:knust_lab/screens/users/notification_page.dart';
 import 'package:knust_lab/screens/users/profile.dart';
 import 'package:knust_lab/screens/users/about.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await FirebaseAppCheck.instance.activate();
 
   runApp(MyApp());
 }

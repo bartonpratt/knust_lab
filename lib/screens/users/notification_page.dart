@@ -83,13 +83,29 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   void _clearAllNotifications() {
-    setState(() {
-      _notifications = []; // Clear the local list of notifications
-    });
+    final userUid = _user?.uid;
 
-    // Show a snackbar indicating that notifications were cleared
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Notifications cleared.')),
-    );
+    if (userUid != null) {
+      FirebaseFirestore.instance
+          .collection('userNotifications')
+          .doc(userUid)
+          .update({'notifications': []}).then((value) {
+        setState(() {
+          _notifications = []; // Clear the local list of notifications
+        });
+
+        // Show a snackbar indicating that notifications were cleared
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notifications cleared.')),
+        );
+      }).catchError((error) {
+        // Show an error snackbar if there was an issue clearing notifications
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Failed to clear notifications. Please try again.')),
+        );
+      });
+    }
   }
 }

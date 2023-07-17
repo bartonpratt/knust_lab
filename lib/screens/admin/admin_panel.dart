@@ -100,8 +100,10 @@ class UserList extends StatefulWidget {
 }
 
 class _UserListState extends State<UserList> {
-  final Stream<QuerySnapshot> _usersStream =
-      FirebaseFirestore.instance.collection('users').snapshots();
+  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
+      .collection('users')
+      .where('role', isEqualTo: 'user')
+      .snapshots();
   final TextEditingController _searchController = TextEditingController();
   String _searchTerm = '';
 
