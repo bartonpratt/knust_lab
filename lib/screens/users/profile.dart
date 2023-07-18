@@ -15,6 +15,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final ImagePicker _imagePicker = ImagePicker();
   late Future<Map<String, dynamic>?> _userDetailsFuture;
+  String? _tempImageUrl;
 
   @override
   void initState() {
@@ -51,39 +52,54 @@ class _ProfilePageState extends State<ProfilePage> {
             appBar: AppBar(
               title: const Text('Profile'),
             ),
-            body: Center(
-              child: userDetails != null
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () => _selectAndUploadImage(context),
-                          child: CircleAvatar(
-                            backgroundImage: NetworkImage(
-                              userDetails['avatarUrl'] ?? '',
+            body: Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Center(
+                child: userDetails != null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              if (userDetails['avatarUrl'] != null) {
+                                _openProfileImage(context);
+                              } else {
+                                _selectAndUploadImage(context);
+                              }
+                            },
+                            child: Hero(
+                              tag: 'profile_image',
+                              child: CircleAvatar(
+                                radius: 50.0,
+                                backgroundImage: userDetails['avatarUrl'] !=
+                                        null
+                                    ? NetworkImage(userDetails['avatarUrl']!)
+                                    : AssetImage('assets/images/my_image.png')
+                                        as ImageProvider<Object>,
+                              ),
                             ),
-                            radius: 50.0,
                           ),
-                        ),
-                        const SizedBox(height: 16.0),
-                        _buildUserInfoItem(
-                          Icons.person,
-                          'Name',
-                          userDetails['name'] ?? '',
-                        ),
-                        _buildUserInfoItem(
-                          Icons.email,
-                          'Email',
-                          userDetails['email'] ?? '',
-                        ),
-                        _buildUserInfoItem(
-                          Icons.confirmation_num,
-                          'Hospital ID',
-                          userDetails['hospitalId'] ?? '',
-                        ),
-                      ],
-                    )
-                  : const Text('No user details found'),
+                          const SizedBox(height: 16.0),
+                          _buildUserInfoCard(
+                            icon: Icons.person,
+                            title: 'Name',
+                            value: userDetails['name'] ?? '',
+                          ),
+                          _buildUserInfoCard(
+                            icon: Icons.email,
+                            title: 'Email',
+                            value: userDetails['email'] ?? '',
+                          ),
+                          _buildUserInfoCard(
+                            icon: Icons.confirmation_num,
+                            title: 'Hospital ID',
+                            value: userDetails['hospitalId'] ?? '',
+                          ),
+                        ],
+                      )
+                    : const Text('No user details found'),
+              ),
             ),
           );
         }
@@ -91,19 +107,20 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildUserInfoItem(IconData icon, String title, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon),
-          const SizedBox(width: 8.0),
-          Text(
-            '$title: ${value.toString()}',
-            style: const TextStyle(fontSize: 16.0),
-          ),
-        ],
+  Widget _buildUserInfoCard({
+    required IconData icon,
+    required String title,
+    required dynamic value,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(value.toString()),
       ),
     );
   }
@@ -135,6 +152,91 @@ class _ProfilePageState extends State<ProfilePage> {
       print('Error retrieving current user details: $e');
       return null;
     }
+  }
+
+  Future<void> _openProfileImage(BuildContext context) async {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      final DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (documentSnapshot.exists) {
+        final userDetails = documentSnapshot.data() as Map<String, dynamic>;
+
+        setState(() {
+          _tempImageUrl = userDetails['avatarUrl'];
+        });
+
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => _buildProfileImageScreen(),
+          ),
+        );
+
+        setState(() {
+          _tempImageUrl = null;
+        });
+      }
+    }
+  }
+
+  Widget _buildProfileImageScreen() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      body: GestureDetector(
+        onTap: () {
+          if (_tempImageUrl == null) {
+            _selectAndUploadImage(context);
+          }
+        },
+        child: Center(
+          child: _tempImageUrl != null
+              ? Hero(
+                  tag: 'profile_image',
+                  child: Image.network(_tempImageUrl!),
+                )
+              : const CircularProgressIndicator(),
+        ),
+      ),
+      bottomNavigationBar: _buildEditButton(),
+    );
+  }
+
+  Widget _buildEditButton() {
+    if (_tempImageUrl == null) {
+      return SizedBox.shrink();
+    }
+
+    return BottomAppBar(
+      child: Container(
+        color: Colors.black,
+        height: 48.0,
+        child: TextButton(
+          onPressed: () => _selectAndUploadImage(context),
+          child: Text(
+            'Edit',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _selectAndUploadImage(BuildContext context) async {

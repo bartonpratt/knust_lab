@@ -1,58 +1,107 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:knust_lab/screens/authentication_service.dart';
-// Import the SettingsPage
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
   return Drawer(
     child: ListView(
       padding: EdgeInsets.zero,
       children: <Widget>[
-        const DrawerHeader(
-          decoration: BoxDecoration(
-            color: Colors.blue,
-          ),
-          child: Text(
-            'Menu',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-            ),
-          ),
-        ),
-        ListTile(
-          leading: const Icon(Icons.dashboard),
-          title: const Text('Dashboard'),
-          onTap: () {
-            closeDrawer(); // Close the drawer
+        FutureBuilder<Map<String, dynamic>?>(
+          future: _getCurrentUserDetails(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text(
+                  'Loading...',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text(
+                  'Error retrieving user details',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              );
+            } else {
+              final userDetails = snapshot.data;
+              return UserAccountsDrawerHeader(
+                accountName: Text(userDetails?['name'] ?? 'John Doe'),
+                accountEmail:
+                    Text(userDetails?['email'] ?? 'johndoe@example.com'),
+                currentAccountPicture: GestureDetector(
+                  onTap: () {
+                    closeDrawer();
+                    Navigator.pushNamed(context, '/profile');
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: userDetails?['avatarUrl'] != null
+                        ? NetworkImage(userDetails?['avatarUrl']!)
+                        : AssetImage('assets/images/my_image.png')
+                            as ImageProvider<Object>,
+                  ),
+                ),
+              );
+            }
           },
         ),
         ListTile(
-          leading: const Icon(Icons.notifications),
-          title: const Text('Notifications'),
+          leading: Icon(Icons.home),
+          title: Text('Home'),
           onTap: () {
+            closeDrawer(); // Close the drawer
+            // Handle home navigation
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.notifications),
+          title: Text('Notifications'),
+          onTap: () {
+            closeDrawer(); // Close the drawer
             Navigator.pushNamed(context, '/notifications');
           },
         ),
         ListTile(
-          leading: const Icon(Icons.person),
-          title: const Text('Profile'),
+          leading: Icon(Icons.person),
+          title: Text('Profile'),
           onTap: () {
+            closeDrawer(); // Close the drawer
             Navigator.pushNamed(context, '/profile');
           },
         ),
         ListTile(
-          leading: const Icon(Icons.info),
-          title: const Text('About'),
+          leading: Icon(Icons.info),
+          title: Text('About'),
           onTap: () {
+            closeDrawer(); // Close the drawer
             Navigator.pushNamed(context, '/about');
           },
         ),
+        Divider(),
         ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Sign Out'),
+          leading: Icon(Icons.logout),
+          title: Text('Sign Out'),
           onTap: () async {
             AuthenticationService authService = AuthenticationService();
             await authService.signOut();
+
+            closeDrawer(); // Close the drawer
 
             // Navigate to the sign-in page
             Navigator.pushNamedAndRemoveUntil(
@@ -65,4 +114,32 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
       ],
     ),
   );
+}
+
+Future<Map<String, dynamic>?> _getCurrentUserDetails() async {
+  try {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      final DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (documentSnapshot.exists) {
+        final userDetails = documentSnapshot.data() as Map<String, dynamic>;
+        print('User Details: $userDetails');
+        return userDetails;
+      } else {
+        print('User document does not exist');
+      }
+    } else {
+      print('User is null');
+    }
+
+    return null;
+  } catch (e) {
+    print('Error retrieving current user details: $e');
+    return null;
+  }
 }

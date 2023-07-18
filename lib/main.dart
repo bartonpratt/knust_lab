@@ -82,7 +82,7 @@ class _SplashPageState extends State<SplashPage> {
 
   void navigateToNextScreen() async {
     // Simulate a delay for the splash screen
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 5));
 
     // Check if the user is already logged in
     final preferences = await SharedPreferences.getInstance();
