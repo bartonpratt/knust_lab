@@ -42,9 +42,18 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
             } else {
               final userDetails = snapshot.data;
               return UserAccountsDrawerHeader(
-                accountName: Text(userDetails?['name'] ?? 'John Doe'),
-                accountEmail:
-                    Text(userDetails?['email'] ?? 'johndoe@example.com'),
+                accountName: Text(
+                  userDetails?['name'],
+                  style: TextStyle(
+                    fontSize: 20,
+                  ),
+                ),
+                accountEmail: Text(
+                  userDetails?['email'],
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
                 currentAccountPicture: GestureDetector(
                   onTap: () {
                     closeDrawer();
@@ -63,7 +72,12 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
         ),
         ListTile(
           leading: Icon(Icons.home),
-          title: Text('Home'),
+          title: Text(
+            'Home',
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
           onTap: () {
             closeDrawer(); // Close the drawer
             // Handle home navigation
@@ -71,7 +85,12 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
         ),
         ListTile(
           leading: Icon(Icons.notifications),
-          title: Text('Notifications'),
+          title: Text(
+            'Notifications',
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
           onTap: () {
             closeDrawer(); // Close the drawer
             Navigator.pushNamed(context, '/notifications');
@@ -79,7 +98,12 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
         ),
         ListTile(
           leading: Icon(Icons.person),
-          title: Text('Profile'),
+          title: Text(
+            'Profile',
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
           onTap: () {
             closeDrawer(); // Close the drawer
             Navigator.pushNamed(context, '/profile');
@@ -87,7 +111,12 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
         ),
         ListTile(
           leading: Icon(Icons.info),
-          title: Text('About'),
+          title: Text(
+            'About',
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
           onTap: () {
             closeDrawer(); // Close the drawer
             Navigator.pushNamed(context, '/about');
@@ -96,7 +125,12 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
         Divider(),
         ListTile(
           leading: Icon(Icons.logout),
-          title: Text('Sign Out'),
+          title: Text(
+            'Sign Out',
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
           onTap: () async {
             AuthenticationService authService = AuthenticationService();
             await authService.signOut();

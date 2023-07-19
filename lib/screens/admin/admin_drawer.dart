@@ -42,15 +42,6 @@ class AdminDrawer extends StatelessWidget {
             selected: selectedDrawerIndex == 0,
           ),
           ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              onDrawerItemTap(1);
-              scaffoldKey.currentState?.openEndDrawer(); // Close the drawer
-            },
-            selected: selectedDrawerIndex == 1,
-          ),
-          ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Sign Out'),
             onTap: () async {
@@ -61,7 +52,7 @@ class AdminDrawer extends StatelessWidget {
                 (Route<dynamic> route) => false,
               );
             },
-            selected: selectedDrawerIndex == 2,
+            selected: selectedDrawerIndex == 1,
           ),
         ],
       ),

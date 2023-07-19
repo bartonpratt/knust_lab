@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:knust_lab/screens/admin/admin_drawer.dart';
 import 'package:knust_lab/screens/authentication_service.dart';
-import 'package:knust_lab/screens/settings.dart';
 
 class AdminPanelPage extends StatefulWidget {
   const AdminPanelPage({Key? key}) : super(key: key);
@@ -82,8 +81,6 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
     switch (_selectedDrawerIndex) {
       case 0:
         return UserList(firebaseMessaging: _firebaseMessaging);
-      case 1:
-        return const SettingsPage();
       default:
         return Container();
     }
