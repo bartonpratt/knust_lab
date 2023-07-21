@@ -1,5 +1,5 @@
 //notification_service.dart
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -8,6 +8,15 @@ class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
+  static final NotificationService _instance = NotificationService._internal();
+
+  factory NotificationService() {
+    return _instance;
+  }
+
+  NotificationService._internal();
+
   Future<void> initialize(BuildContext context) async {
     // Initialize Firebase Messaging
     await _firebaseMessaging.requestPermission();
@@ -22,27 +31,30 @@ class NotificationService {
         InitializationSettings(android: initializationSettingsAndroid);
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
 
-    // Configure Firebase Messaging callbacks
+  Future<void> initFirebaseMessaging() async {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('onMessage: $message');
-      _showLocalNotification(message);
+      // Handle incoming FCM messages while the app is in the foreground
+      final notification = message.notification;
+      if (notification != null) {
+        showNotification(
+          title: notification.title ?? '',
+          body: notification.body ?? '',
+        );
+      }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('onMessageOpenedApp: $message');
-      // Handle when app is in the background and user taps on the notification
-      // Navigate to the appropriate screen based on the notification data
-      // For example:
-      Navigator.pushReplacementNamed(context, '/notifications');
+      // Handle notification tap action while the app is in the background
+      // You can navigate to a specific screen based on the notification payload here
     });
   }
 
-  Future<void> _showLocalNotification(RemoteMessage message) async {
-    final notificationData = message.notification;
-    final title = notificationData?.title ?? '';
-    final body = notificationData?.body ?? '';
-
+  Future<void> showNotification({
+    required String title,
+    required String body,
+  }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'my_channel_id',
@@ -62,5 +74,15 @@ class NotificationService {
       platformChannelSpecifics,
       payload: 'default',
     );
+  }
+
+  Future<void> updateFCMTokenInFirestore(String userId, String token) async {
+    try {
+      final userCollection = FirebaseFirestore.instance.collection('users');
+      await userCollection.doc(userId).update({'fcmToken': token});
+      print('FCM Token updated in Firestore for user: $userId');
+    } catch (e) {
+      print('Error updating FCM token in Firestore: $e');
+    }
   }
 }

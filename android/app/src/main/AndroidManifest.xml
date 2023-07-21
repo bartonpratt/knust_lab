@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:label="KNUST Lab"
         android:name="${applicationName}"
@@ -8,9 +12,36 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_launcher" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="my_channel_id" />
+        <!-- <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/primary_color/" /> -->
+
+        <service
+            android:name="com.example.knust_lab.FirebaseMessagingServiceHandler"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        
+        <receiver
+            android:name="com.example.knust_lab.FirebaseMessagingBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Add this receiver to handle notifications when the app is in the foreground -->
+        <receiver
+            android:name="com.example.knust_lab.LocalNotificationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.knust_lab.SHOW_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
+
+
             
         <activity
             android:name=".MainActivity"
@@ -32,6 +63,11 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

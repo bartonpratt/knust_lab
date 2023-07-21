@@ -4,7 +4,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:knust_lab/screens/authentication_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpPage extends StatefulWidget {
   @override
@@ -18,7 +17,6 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _hospitalIdController = TextEditingController();
 
   final AuthenticationService _authenticationService = AuthenticationService();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool _isLoading = false;
 

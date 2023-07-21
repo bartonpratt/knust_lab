@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:knust_lab/api/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationService {
@@ -37,13 +38,17 @@ class AuthenticationService {
           .createUserWithEmailAndPassword(email: email, password: password);
 
       if (userCredential.user != null) {
-        await _saveUserDetails(
-          userCredential.user!.uid,
-          name,
-          email,
-          hospitalId,
-          role: 'user', // Set default role as "user"
-        );
+        final userId = userCredential.user!.uid;
+        await _saveUserDetails(userId, name, email, hospitalId, role: 'user');
+
+        // Get the FCM token
+        final token = await _firebaseMessaging.getToken();
+        print('FCM Token: $token');
+
+        if (token != null) {
+          // Update the FCM token in Firestore
+          await NotificationService().updateFCMTokenInFirestore(userId, token);
+        }
       }
 
       return userCredential.user;
@@ -74,10 +79,12 @@ class AuthenticationService {
       await userCollection.doc(userId).set(userData);
       debugPrint('User details saved successfully');
 
+      // Get the FCM token
       final token = await _firebaseMessaging.getToken();
       print('FCM Token: $token');
 
       if (token != null) {
+        // Save the FCM token to Firestore
         await userCollection.doc(userId).update({'fcmToken': token});
         print('FCM Token saved successfully');
       }

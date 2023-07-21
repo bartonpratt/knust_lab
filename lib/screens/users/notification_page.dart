@@ -1,7 +1,8 @@
-// notification_page.dart
+//notification_page.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:knust_lab/api/notification_service.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
@@ -13,13 +14,22 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage> {
   final User? _user = FirebaseAuth.instance.currentUser;
   List<dynamic> _notifications = [];
+  final NotificationService _notificationService = NotificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationService.initialize(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     if (_user == null) {
-      return Center(
-        child: Text('User not authenticated.'),
-      );
+      // User is not authenticated, redirect to sign-in page
+      Future.delayed(Duration.zero, () {
+        Navigator.pushReplacementNamed(context, '/signin');
+      });
+      return Center();
     }
 
     return Scaffold(
@@ -47,8 +57,7 @@ class _NotificationPageState extends State<NotificationPage> {
             );
           }
 
-          _notifications =
-              notifications; // Store notifications in the local list
+          _notifications = notifications.reversed.toList(); // Reverse the list
 
           return ListView.builder(
             itemCount: _notifications.length,
@@ -94,12 +103,10 @@ class _NotificationPageState extends State<NotificationPage> {
           _notifications = []; // Clear the local list of notifications
         });
 
-        // Show a snackbar indicating that notifications were cleared
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Notifications cleared.')),
         );
       }).catchError((error) {
-        // Show an error snackbar if there was an issue clearing notifications
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content:
