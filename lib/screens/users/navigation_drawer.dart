@@ -12,7 +12,7 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
       padding: EdgeInsets.zero,
       children: <Widget>[
         FutureBuilder<Map<String, dynamic>?>(
-          future: _getCurrentUserDetails(),
+          future: _getCurrentUser(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return DrawerHeader(
@@ -151,7 +151,7 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
   );
 }
 
-Future<Map<String, dynamic>?> _getCurrentUserDetails() async {
+Future<Map<String, dynamic>?> _getCurrentUser() async {
   try {
     final User? user = FirebaseAuth.instance.currentUser;
 

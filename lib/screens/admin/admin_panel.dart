@@ -18,7 +18,6 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthenticationService _authenticationService = AuthenticationService();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-
   final NotificationService _notificationService = NotificationService();
 
   @override
@@ -26,7 +25,19 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
     super.initState();
 
     // Initialize notifications
-    _notificationService.initFirebaseMessaging();
+    _notificationService.initialize(context);
+
+    // Get the current admin's ID
+    _initializeFirebaseMessaging();
+  }
+
+  Future<void> _initializeFirebaseMessaging() async {
+    final adminUserDetails = await _authenticationService.getCurrentUser();
+    if (adminUserDetails != null) {
+      final adminUserId = adminUserDetails['uid'];
+      // Initialize Firebase Messaging for the admin user
+      _notificationService.initFirebaseMessaging(adminUserId);
+    }
   }
 
   @override

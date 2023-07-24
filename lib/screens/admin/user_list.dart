@@ -8,11 +8,11 @@ class UserList extends StatefulWidget {
   final FirebaseMessaging firebaseMessaging;
   final NotificationService notificationService;
 
-  const UserList(
-      {Key? key,
-      required this.firebaseMessaging,
-      required this.notificationService})
-      : super(key: key);
+  const UserList({
+    Key? key,
+    required this.firebaseMessaging,
+    required this.notificationService,
+  }) : super(key: key);
 
   @override
   _UserListState createState() => _UserListState();
@@ -30,6 +30,76 @@ class _UserListState extends State<UserList> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _updateUserStatus(String userId, String status) async {
+    final userDocRef =
+        FirebaseFirestore.instance.collection('users').doc(userId);
+
+    try {
+      await userDocRef.update({'status': status});
+      debugPrint('Your status has been updated to $status');
+
+      // Send a notification to the user
+      _sendUserStatusNotification(userId, status);
+
+      final userNotificationsCollection =
+          FirebaseFirestore.instance.collection('userNotifications');
+      final notificationData = {
+        'title': 'Status Update',
+        'body': 'Your status has been updated to $status',
+        'timestamp': Timestamp.now(),
+      };
+
+      // Check if the userNotifications document exists
+      userNotificationsCollection.doc(userId).get().then((snapshot) {
+        if (snapshot.exists) {
+          // Document exists, update the notifications array
+          userNotificationsCollection.doc(userId).update({
+            'notifications': FieldValue.arrayUnion([notificationData])
+          }).then((_) {
+            debugPrint('Notification added to user $userId');
+          }).catchError((error) {
+            debugPrint('Failed to add notification to user $userId: $error');
+          });
+        } else {
+          // Document doesn't exist, create it and set the notifications array
+          userNotificationsCollection.doc(userId).set({
+            'notifications': [notificationData]
+          }).then((_) {
+            debugPrint('Notification added to user $userId');
+          }).catchError((error) {
+            debugPrint('Failed to add notification to user $userId: $error');
+          });
+        }
+      }).catchError((error) {
+        debugPrint('Failed to check userNotifications document: $error');
+      });
+    } catch (e) {
+      debugPrint('Failed to update user $userId status: $e');
+    }
+  }
+
+  Future<void> _sendUserStatusNotification(String userId, String status) async {
+    try {
+      // Fetch the user's FCM token from Firestore
+      final userDocSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      final userToken = userDocSnapshot.data()?['fcmToken'] as String?;
+
+      if (userToken != null) {
+        // Send the notification to the user's specific device
+        await widget.notificationService.showNotification(
+          title: 'Status Update',
+          body: 'Your status has been updated to $status',
+          token: userToken, // Pass the FCM token to the showNotification method
+        );
+      }
+    } catch (e) {
+      print('Error sending user status notification: $e');
+    }
   }
 
   @override
@@ -93,10 +163,13 @@ class _UserListState extends State<UserList> {
                   return UserCard(
                     userId: userDoc.id,
                     hospitalId: hospitalId,
-                    status: status,
-                    updateStatus: (newStatus) {
-                      _updateUserStatus(userDoc.id, newStatus);
-                      _sendUserStatusNotification(userDoc.id, newStatus);
+                    userData: userData,
+                    notificationService: widget.notificationService,
+                    updateStatus: (newStatus) async {
+                      await _updateUserStatus(userDoc.id, newStatus);
+                      setState(() {
+                        userData['status'] = newStatus;
+                      });
                     },
                   );
                 },
@@ -107,51 +180,21 @@ class _UserListState extends State<UserList> {
       ],
     );
   }
-
-  void _updateUserStatus(String userId, String status) {
-    final userDocRef =
-        FirebaseFirestore.instance.collection('users').doc(userId);
-
-    userDocRef.update({'status': status}).then((_) {
-      debugPrint('Your status has been updated to $status');
-    }).catchError((error) {
-      debugPrint('Failed to update user $userId status: $error');
-    });
-  }
-
-  Future<void> _sendUserStatusNotification(String userId, String status) async {
-    try {
-      // Fetch the user's FCM token from Firestore
-      final userDocSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-      final userToken = userDocSnapshot.data()?['fcmToken'] as String?;
-
-      if (userToken != null) {
-        // Send the notification using the provided notificationService
-        await widget.notificationService.showNotification(
-          title: 'User Status Update',
-          body: 'The status for your account has been updated to: $status',
-        );
-      }
-    } catch (e) {
-      print('Error sending user status notification: $e');
-    }
-  }
 }
 
 class UserCard extends StatefulWidget {
   final String userId;
   final int? hospitalId;
-  final String status;
+  final Map<String, dynamic> userData;
+  final NotificationService notificationService;
   final Function(String) updateStatus;
 
-  const UserCard({
+  UserCard({
     Key? key,
     required this.userId,
     required this.hospitalId,
-    required this.status,
+    required this.userData,
+    required this.notificationService,
     required this.updateStatus,
   }) : super(key: key);
 
@@ -160,12 +203,13 @@ class UserCard extends StatefulWidget {
 }
 
 class _UserCardState extends State<UserCard> {
+  String get status => widget.userData['status'] as String? ?? 'Not Started';
   String selectedStatus = '';
 
   @override
   void initState() {
     super.initState();
-    selectedStatus = widget.status;
+    selectedStatus = status;
   }
 
   @override
@@ -207,8 +251,12 @@ class _UserCardState extends State<UserCard> {
             const SizedBox(height: 8.0),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  widget.updateStatus(selectedStatus);
+                onPressed: () async {
+                  await widget.updateStatus(selectedStatus);
+                  final snackBar = SnackBar(
+                    content: Text('Status updated to $selectedStatus'),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
                 },
                 child: const Text('Update Status'),
               ),

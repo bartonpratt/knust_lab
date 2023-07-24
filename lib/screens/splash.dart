@@ -28,7 +28,7 @@ class _SplashPageState extends State<SplashPage> {
     final isLoggedIn = preferences.getBool('isLoggedIn') ?? false;
 
     if (isLoggedIn) {
-      final userDetails = await _authenticationService.getCurrentUserDetails();
+      final userDetails = await _authenticationService.getCurrentUser();
       if (userDetails != null && userDetails['role'] == 'admin') {
         await Future.delayed(
             Duration(seconds: 2)); // Additional delay (optional)

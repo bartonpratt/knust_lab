@@ -1,7 +1,8 @@
-//notification_page.dart
+// notification_page.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:knust_lab/api/notification_service.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -13,13 +14,24 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   final User? _user = FirebaseAuth.instance.currentUser;
-  List<dynamic> _notifications = [];
   final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
-    _notificationService.initialize(context);
+    if (_user != null) {
+      _notificationService.initFirebaseMessaging(_user!.uid);
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        // When the app is in the foreground and a notification is received
+        // this method will be called.
+        print(
+            'Received notification: ${message.notification!.title} - ${message.notification!.body}');
+        _notificationService.showNotification(
+          title: message.notification!.title!,
+          body: message.notification!.body!,
+        );
+      });
+    }
   }
 
   @override
@@ -57,13 +69,11 @@ class _NotificationPageState extends State<NotificationPage> {
             );
           }
 
-          _notifications = notifications.reversed.toList(); // Reverse the list
-
           return ListView.builder(
-            itemCount: _notifications.length,
+            itemCount: notifications.length,
             itemBuilder: (context, index) {
               final notificationData =
-                  _notifications[index] as Map<String, dynamic>;
+                  notifications[index] as Map<String, dynamic>;
               final title = notificationData['title'] as String;
               final body = notificationData['body'] as String;
 
@@ -92,27 +102,24 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   void _clearAllNotifications() {
-    final userUid = _user?.uid;
+    final userNotificationsCollection =
+        FirebaseFirestore.instance.collection('userNotifications');
 
-    if (userUid != null) {
-      FirebaseFirestore.instance
-          .collection('userNotifications')
-          .doc(userUid)
-          .update({'notifications': []}).then((value) {
-        setState(() {
-          _notifications = []; // Clear the local list of notifications
-        });
+    // Delete the userNotifications document for the current user
+    userNotificationsCollection.doc(_user?.uid).delete().then((_) {
+      debugPrint('Notifications cleared.');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Notifications cleared.')),
-        );
-      }).catchError((error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text('Failed to clear notifications. Please try again.')),
-        );
-      });
-    }
+      // Show a snackbar indicating that notifications were cleared
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notifications cleared.')),
+      );
+    }).catchError((error) {
+      debugPrint('Failed to clear notifications: $error');
+
+      // Show a snackbar indicating the error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to clear notifications.')),
+      );
+    });
   }
 }

@@ -40,15 +40,6 @@ class AuthenticationService {
       if (userCredential.user != null) {
         final userId = userCredential.user!.uid;
         await _saveUserDetails(userId, name, email, hospitalId, role: 'user');
-
-        // Get the FCM token
-        final token = await _firebaseMessaging.getToken();
-        print('FCM Token: $token');
-
-        if (token != null) {
-          // Update the FCM token in Firestore
-          await NotificationService().updateFCMTokenInFirestore(userId, token);
-        }
       }
 
       return userCredential.user;
@@ -85,8 +76,12 @@ class AuthenticationService {
 
       if (token != null) {
         // Save the FCM token to Firestore
-        await userCollection.doc(userId).update({'fcmToken': token});
+        userData['fcmToken'] = token;
+        await userCollection.doc(userId).update(userData);
         print('FCM Token saved successfully');
+
+        // Subscribe the user to their own topic
+        await NotificationService().initFirebaseMessaging(userId);
       }
 
       // Update isLoggedIn flag in SharedPreferences
@@ -107,7 +102,7 @@ class AuthenticationService {
       );
 
       if (userCredential.user != null) {
-        final userDetails = await getCurrentUserDetails();
+        final userDetails = await getCurrentUser();
 
         if (userDetails != null) {
           final role = userDetails['role'];
@@ -122,7 +117,7 @@ class AuthenticationService {
     }
   }
 
-  Future<Map<String, dynamic>?> getCurrentUserDetails() async {
+  Future<Map<String, dynamic>?> getCurrentUser() async {
     try {
       final User? user = _firebaseAuth.currentUser;
 

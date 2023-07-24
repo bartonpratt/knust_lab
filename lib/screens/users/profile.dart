@@ -20,7 +20,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _userDetailsFuture = _getCurrentUserDetails();
+    _userDetailsFuture = _getCurrentUser();
   }
 
   @override
@@ -125,7 +125,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Future<Map<String, dynamic>?> _getCurrentUserDetails() async {
+  Future<Map<String, dynamic>?> _getCurrentUser() async {
     try {
       final User? user = FirebaseAuth.instance.currentUser;
 

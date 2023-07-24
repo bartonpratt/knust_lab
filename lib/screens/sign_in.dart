@@ -29,7 +29,7 @@ class _SignInPageState extends State<SignInPage> {
     final isLoggedIn = preferences.getBool('isLoggedIn') ?? false;
 
     if (isLoggedIn) {
-      final userDetails = await _authenticationService.getCurrentUserDetails();
+      final userDetails = await _authenticationService.getCurrentUser();
       if (userDetails != null && userDetails['role'] == 'admin') {
         Navigator.pushReplacementNamed(context, '/admin');
       } else {
