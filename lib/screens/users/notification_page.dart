@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:knust_lab/api/notification_service.dart';
+import 'package:knust_lab/screens/services/notification_service.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
@@ -20,7 +20,7 @@ class _NotificationPageState extends State<NotificationPage> {
   void initState() {
     super.initState();
     if (_user != null) {
-      _notificationService.initFirebaseMessaging(_user!.uid);
+      _notificationService.initialize();
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         // When the app is in the foreground and a notification is received
         // this method will be called.

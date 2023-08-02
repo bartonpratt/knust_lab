@@ -2,12 +2,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:knust_lab/screens/services/notification_service.dart';
 import 'navigation_drawer.dart';
 import 'package:collection/collection.dart';
 
 class DashboardPage extends StatelessWidget {
   final User? currentUser = FirebaseAuth.instance.currentUser;
+  final NotificationService notificationService; // Add this line
+  DashboardPage({required this.notificationService});
 
+  // Add this constructor
   @override
   Widget build(BuildContext context) {
     return Scaffold(

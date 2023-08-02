@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:knust_lab/main.dart';
-import 'package:knust_lab/screens/authentication_service.dart';
+import 'package:knust_lab/screens/services/authentication_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashPage extends StatefulWidget {

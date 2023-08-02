@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:knust_lab/api/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationService {
@@ -40,9 +39,15 @@ class AuthenticationService {
       if (userCredential.user != null) {
         final userId = userCredential.user!.uid;
         await _saveUserDetails(userId, name, email, hospitalId, role: 'user');
+
+        // Send email verification link to the user
+        await userCredential.user!.sendEmailVerification();
+
+        // Return the user
+        return userCredential.user;
       }
 
-      return userCredential.user;
+      return null;
     } catch (e) {
       debugPrint('Sign up error: $e');
       return null;
@@ -67,6 +72,7 @@ class AuthenticationService {
     };
 
     try {
+      // Save the user details to Firestore
       await userCollection.doc(userId).set(userData);
       debugPrint('User details saved successfully');
 
@@ -79,9 +85,6 @@ class AuthenticationService {
         userData['fcmToken'] = token;
         await userCollection.doc(userId).update(userData);
         print('FCM Token saved successfully');
-
-        // Subscribe the user to their own topic
-        await NotificationService().initFirebaseMessaging(userId);
       }
 
       // Update isLoggedIn flag in SharedPreferences
@@ -154,6 +157,15 @@ class AuthenticationService {
       await preferences.setBool('isLoggedIn', false);
     } catch (e) {
       debugPrint('Sign out error: $e');
+    }
+  }
+
+  Future<void> resetPassword(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      debugPrint('Reset password error: $e');
+      throw e;
     }
   }
 }

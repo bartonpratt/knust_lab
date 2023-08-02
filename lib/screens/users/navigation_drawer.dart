@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:knust_lab/screens/authentication_service.dart';
+import 'package:knust_lab/screens/services/authentication_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 

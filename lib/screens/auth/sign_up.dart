@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:knust_lab/screens/authentication_service.dart';
+import 'package:knust_lab/screens/services/authentication_service.dart';
 
 class SignUpPage extends StatefulWidget {
   @override
@@ -126,8 +126,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                Navigator.pushReplacementNamed(
-                                    context, '/signin');
+                                Navigator.pushNamed(context, '/signin');
                               },
                           ),
                         ],
@@ -189,26 +188,45 @@ class _SignUpPageState extends State<SignUpPage> {
         return;
       }
 
-      setState(() {
-        _isLoading = true;
-      });
+      // Perform the registration process
+      try {
+        setState(() {
+          _isLoading = true;
+        });
 
-      final User? user =
-          await _authenticationService.signUpWithEmailAndPassword(
-              email, password, fullName, int.parse(hospitalId));
+        final User? user =
+            await _authenticationService.signUpWithEmailAndPassword(
+          email,
+          password,
+          fullName,
+          int.parse(hospitalId),
+        );
 
-      setState(() {
-        _isLoading = false;
-      });
+        setState(() {
+          _isLoading = false;
+        });
 
-      if (user != null) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
-      } else {
+        if (user != null) {
+          // Registration successful, Firebase automatically sends verification email
+          // Sign out the user before navigating to the email confirmation page
+
+          Navigator.pushReplacementNamed(context, '/email_confirmation');
+          await _authenticationService.signOut();
+        } else {
+          _showAlertDialog(
+            context,
+            'Error',
+            'Failed to sign up. Please try again.',
+          );
+        }
+      } catch (e) {
+        print('Sign-up error: $e');
         _showAlertDialog(
-            context, 'Error', 'Failed to sign up. Please try again.');
+          context,
+          'Error',
+          'Failed to sign up. Please try again.',
+        );
       }
-    } else {
-      _showAlertDialog(context, 'Error', 'Please fill in all the fields.');
     }
   }
 

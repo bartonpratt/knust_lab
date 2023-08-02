@@ -2,7 +2,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:knust_lab/api/notification_service.dart';
+import 'package:knust_lab/screens/services/notification_service.dart';
 
 class UserList extends StatefulWidget {
   final FirebaseMessaging firebaseMessaging;
@@ -19,12 +19,19 @@ class UserList extends StatefulWidget {
 }
 
 class _UserListState extends State<UserList> {
+  late NotificationService _notificationService;
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('users')
       .where('role', isEqualTo: 'user')
       .snapshots();
   final TextEditingController _searchController = TextEditingController();
   String _searchTerm = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationService = widget.notificationService;
+  }
 
   @override
   void dispose() {
@@ -35,13 +42,14 @@ class _UserListState extends State<UserList> {
   Future<void> _updateUserStatus(String userId, String status) async {
     final userDocRef =
         FirebaseFirestore.instance.collection('users').doc(userId);
+    final userDocSnapshot = await userDocRef.get();
+    final userData = userDocSnapshot.data();
+    final hospitalId = userData?['hospitalId'] as int?;
+    final currentStatus = userData?['status'] as String? ?? 'Not Started';
 
     try {
       await userDocRef.update({'status': status});
       debugPrint('Your status has been updated to $status');
-
-      // Send a notification to the user
-      _sendUserStatusNotification(userId, status);
 
       final userNotificationsCollection =
           FirebaseFirestore.instance.collection('userNotifications');
@@ -51,10 +59,16 @@ class _UserListState extends State<UserList> {
         'timestamp': Timestamp.now(),
       };
 
-      // Check if the userNotifications document exists
+      final userDetails = await _getUserDetails(userId);
+      if (userDetails != null) {
+        final userToken = userDetails['fcmToken'];
+        if (userToken != null) {
+          await _sendUserStatusNotification(userId, status, userToken);
+        }
+      }
+
       userNotificationsCollection.doc(userId).get().then((snapshot) {
         if (snapshot.exists) {
-          // Document exists, update the notifications array
           userNotificationsCollection.doc(userId).update({
             'notifications': FieldValue.arrayUnion([notificationData])
           }).then((_) {
@@ -63,7 +77,6 @@ class _UserListState extends State<UserList> {
             debugPrint('Failed to add notification to user $userId: $error');
           });
         } else {
-          // Document doesn't exist, create it and set the notifications array
           userNotificationsCollection.doc(userId).set({
             'notifications': [notificationData]
           }).then((_) {
@@ -80,23 +93,38 @@ class _UserListState extends State<UserList> {
     }
   }
 
-  Future<void> _sendUserStatusNotification(String userId, String status) async {
+  Future<Map<String, dynamic>?> _getUserDetails(String userId) async {
     try {
-      // Fetch the user's FCM token from Firestore
-      final userDocSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-      final userToken = userDocSnapshot.data()?['fcmToken'] as String?;
+      final DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get();
 
-      if (userToken != null) {
-        // Send the notification to the user's specific device
-        await widget.notificationService.showNotification(
-          title: 'Status Update',
-          body: 'Your status has been updated to $status',
-          token: userToken, // Pass the FCM token to the showNotification method
-        );
+      if (documentSnapshot.exists) {
+        final userDetails = documentSnapshot.data();
+        return userDetails;
+      } else {
+        debugPrint('User document does not exist');
       }
+    } catch (e) {
+      debugPrint('Error retrieving user details: $e');
+    }
+    return null;
+  }
+
+  Future<void> _sendUserStatusNotification(
+    String userId,
+    String status,
+    String userToken,
+  ) async {
+    try {
+      print('Sending notification to user: $userId, FCM Token: $userToken');
+      await _notificationService.showNotification(
+        title: 'Status Update',
+        body: 'Your status has been updated to $status',
+      );
+      print('Notification sent to user: $userId');
     } catch (e) {
       print('Error sending user status notification: $e');
     }
@@ -157,12 +185,10 @@ class _UserListState extends State<UserList> {
                 itemBuilder: (context, index) {
                   final userDoc = filteredUsers[index];
                   final userData = userDoc.data() as Map<String, dynamic>;
-                  final hospitalId = userData['hospitalId'] as int?;
-                  final status = userData['status'] as String? ?? 'Not Started';
 
                   return UserCard(
                     userId: userDoc.id,
-                    hospitalId: hospitalId,
+                    hospitalId: userData['hospitalId'] as int?,
                     userData: userData,
                     notificationService: widget.notificationService,
                     updateStatus: (newStatus) async {
@@ -199,18 +225,15 @@ class UserCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _UserCardState createState() => _UserCardState();
+  _UserCardState createState() => _UserCardState(userData: userData);
 }
 
 class _UserCardState extends State<UserCard> {
   String get status => widget.userData['status'] as String? ?? 'Not Started';
   String selectedStatus = '';
 
-  @override
-  void initState() {
-    super.initState();
-    selectedStatus = status;
-  }
+  _UserCardState({required Map<String, dynamic> userData})
+      : selectedStatus = userData['status'] as String? ?? 'Not Started';
 
   @override
   Widget build(BuildContext context) {

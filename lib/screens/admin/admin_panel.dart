@@ -1,9 +1,9 @@
 // admin_panel.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:knust_lab/api/notification_service.dart';
+import 'package:knust_lab/screens/services/notification_service.dart';
 import 'package:knust_lab/screens/admin/admin_drawer.dart';
-import 'package:knust_lab/screens/authentication_service.dart';
+import 'package:knust_lab/screens/services/authentication_service.dart';
 import 'package:knust_lab/screens/admin/user_list.dart';
 
 class AdminPanelPage extends StatefulWidget {
@@ -24,20 +24,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   void initState() {
     super.initState();
 
-    // Initialize notifications
-    _notificationService.initialize(context);
-
-    // Get the current admin's ID
-    _initializeFirebaseMessaging();
-  }
-
-  Future<void> _initializeFirebaseMessaging() async {
-    final adminUserDetails = await _authenticationService.getCurrentUser();
-    if (adminUserDetails != null) {
-      final adminUserId = adminUserDetails['uid'];
-      // Initialize Firebase Messaging for the admin user
-      _notificationService.initFirebaseMessaging(adminUserId);
-    }
+    _notificationService.initialize();
   }
 
   @override

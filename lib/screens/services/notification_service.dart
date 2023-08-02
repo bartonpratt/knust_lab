@@ -1,5 +1,6 @@
 // notification_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -17,7 +18,7 @@ class NotificationService {
 
   NotificationService._internal();
 
-  Future<void> initialize(BuildContext context) async {
+  Future<void> initialize() async {
     // Initialize Firebase Messaging
     await _firebaseMessaging.requestPermission();
 
@@ -29,9 +30,24 @@ class NotificationService {
         InitializationSettings(android: initializationSettingsAndroid);
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+    // Get the FCM token and update it in Firestore
+    try {
+      final token = await _firebaseMessaging.getToken();
+      if (token != null) {
+        final userId = FirebaseAuth.instance.currentUser?.uid;
+        if (userId != null) {
+          await updateFCMTokenInFirestore(userId, token);
+        }
+      } else {
+        debugPrint('FCM Token is null');
+      }
+    } catch (e) {
+      debugPrint('Error getting FCM token: $e');
+    }
   }
 
-  Future<void> initFirebaseMessaging(String userId) async {
+  Future<void> initFirebaseMessaging(String userId, String token) async {
     // Unsubscribe the admin from the previous user-specific topic, if any
     await _firebaseMessaging.unsubscribeFromTopic('admin');
 
@@ -42,6 +58,10 @@ class NotificationService {
     if (isValidTopic) {
       // Subscribe to a topic specific to the user
       await _firebaseMessaging.subscribeToTopic('user_$userId');
+      print('Subscribed to topic: user_$userId');
+
+      // Update the FCM token in Firestore for the current user
+      await updateFCMTokenInFirestore(userId, token);
     } else {
       debugPrint('Invalid topic name: user_$userId');
     }
@@ -50,13 +70,12 @@ class NotificationService {
   Future<void> showNotification({
     required String title,
     required String body,
-    String? token, // Add the token parameter
   }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'my_channel_id',
-      'My App Notifications',
-      channelDescription: 'channel description',
+      'knust_lab_channel',
+      'KNUST Lab Channel',
+      channelDescription: 'Channel for KNUST Lab Notifications',
       importance: Importance.max,
       priority: Priority.high,
     );
@@ -64,27 +83,18 @@ class NotificationService {
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
-    await _flutterLocalNotificationsPlugin.show(
-      0,
-      title,
-      body,
-      platformChannelSpecifics,
-      payload: 'default',
-    );
-
-    // If the token is provided, send the notification to the specific device
-    if (token != null) {
-      try {
-        await _firebaseMessaging.sendMessage(
-          data: {
-            'title': title,
-            'body': body,
-          },
-          to: token,
-        );
-      } catch (e) {
-        print('Error sending FCM message: $e');
-      }
+    try {
+      debugPrint('Showing notification: Title - $title, Body - $body');
+      await _flutterLocalNotificationsPlugin.show(
+        0,
+        title,
+        body,
+        platformChannelSpecifics,
+        payload: 'default',
+      );
+      debugPrint('Notification shown.');
+    } catch (e) {
+      debugPrint('Error showing notification: $e');
     }
   }
 

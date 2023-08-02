@@ -1,9 +1,9 @@
 //sign_in.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:knust_lab/screens/sign_up.dart';
+import 'package:knust_lab/screens/auth/sign_up.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'authentication_service.dart';
+import '../services/authentication_service.dart';
 
 class SignInPage extends StatefulWidget {
   @override
@@ -87,6 +87,57 @@ class _SignInPageState extends State<SignInPage> {
     }
   }
 
+  void _resetPassword(BuildContext context) {
+    TextEditingController _emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Reset Password'),
+          content: TextField(
+            controller: _emailController,
+            decoration: InputDecoration(labelText: 'Enter your email'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String email = _emailController.text.trim();
+                if (email.isNotEmpty) {
+                  try {
+                    // Call the function to reset the password
+                    await _authenticationService.resetPassword(email);
+                    Navigator.pop(context); // Close the dialog
+                    _showSnackBar(context, 'Password reset email sent.');
+                  } catch (e) {
+                    print('Error sending password reset email: $e');
+                    _showSnackBar(context,
+                        'Error sending reset email. Please try again.');
+                  }
+                } else {
+                  _showSnackBar(context, 'Please enter your email.');
+                }
+              },
+              child: Text('Reset'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -163,6 +214,23 @@ class _SignInPageState extends State<SignInPage> {
                               ),
                             ),
                             obscureText: !_passwordVisible,
+                          ),
+                          SizedBox(height: 16.0),
+                          // Add "Forgot Password" link here
+                          SizedBox(height: 16.0),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () => _resetPassword(context),
+                              child: Text(
+                                'Forgot Password?',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.0,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
                           SizedBox(height: 16.0),
                           Container(
