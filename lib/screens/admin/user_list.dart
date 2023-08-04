@@ -56,7 +56,7 @@ class _UserListState extends State<UserList> {
       final notificationData = {
         'title': 'Status Update',
         'body': 'Your status has been updated to $status',
-        'timestamp': Timestamp.now(),
+        'timestamp': DateTime.now(), // Set the timestamp using DateTime.now()
       };
 
       final userDetails = await _getUserDetails(userId);
@@ -67,8 +67,10 @@ class _UserListState extends State<UserList> {
         }
       }
 
+      // Check if the userNotifications document exists
       userNotificationsCollection.doc(userId).get().then((snapshot) {
         if (snapshot.exists) {
+          // Document exists, update the notifications array
           userNotificationsCollection.doc(userId).update({
             'notifications': FieldValue.arrayUnion([notificationData])
           }).then((_) {
@@ -77,6 +79,7 @@ class _UserListState extends State<UserList> {
             debugPrint('Failed to add notification to user $userId: $error');
           });
         } else {
+          // Document doesn't exist, create it and set the notifications array
           userNotificationsCollection.doc(userId).set({
             'notifications': [notificationData]
           }).then((_) {
@@ -103,6 +106,7 @@ class _UserListState extends State<UserList> {
 
       if (documentSnapshot.exists) {
         final userDetails = documentSnapshot.data();
+        debugPrint('User details retrieved successfully: $userDetails');
         return userDetails;
       } else {
         debugPrint('User document does not exist');
@@ -114,16 +118,14 @@ class _UserListState extends State<UserList> {
   }
 
   Future<void> _sendUserStatusNotification(
-    String userId,
-    String status,
-    String userToken,
-  ) async {
+      String userId, String status, String userToken) async {
     try {
       print('Sending notification to user: $userId, FCM Token: $userToken');
       await _notificationService.showNotification(
         title: 'Status Update',
         body: 'Your status has been updated to $status',
       );
+
       print('Notification sent to user: $userId');
     } catch (e) {
       print('Error sending user status notification: $e');
@@ -190,7 +192,8 @@ class _UserListState extends State<UserList> {
                     userId: userDoc.id,
                     hospitalId: userData['hospitalId'] as int?,
                     userData: userData,
-                    notificationService: widget.notificationService,
+                    notificationService:
+                        _notificationService, // Pass the notification service to UserCard
                     updateStatus: (newStatus) async {
                       await _updateUserStatus(userDoc.id, newStatus);
                       setState(() {
@@ -225,15 +228,18 @@ class UserCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _UserCardState createState() => _UserCardState(userData: userData);
+  _UserCardState createState() => _UserCardState();
 }
 
 class _UserCardState extends State<UserCard> {
   String get status => widget.userData['status'] as String? ?? 'Not Started';
   String selectedStatus = '';
 
-  _UserCardState({required Map<String, dynamic> userData})
-      : selectedStatus = userData['status'] as String? ?? 'Not Started';
+  @override
+  void initState() {
+    super.initState();
+    selectedStatus = status;
+  }
 
   @override
   Widget build(BuildContext context) {

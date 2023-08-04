@@ -19,6 +19,8 @@
   - user1 (document ID = user's auto-generated ID)
     - hospitalId: 12345
     - status: "Completed"
-  - user2
-    - hospitalId: 54321
-    - status: "In Progress"
+    - email: "john@gmail.com"
+    - name: "John"
+    - role: "user"
+    - fcmToken: "jfjbfufauhfufhufhuf-ijahjfjfbdjbbcghiaiidbd"
+  

@@ -13,6 +13,7 @@ import 'package:knust_lab/screens/admin/admin_panel.dart';
 import 'package:knust_lab/screens/users/notification_page.dart';
 import 'package:knust_lab/screens/users/profile.dart';
 import 'package:knust_lab/screens/users/about.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
