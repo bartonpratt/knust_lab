@@ -17,14 +17,10 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   int _selectedDrawerIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthenticationService _authenticationService = AuthenticationService();
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
-
-    _notificationService.initialize();
   }
 
   @override
@@ -59,10 +55,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   Widget _getBodyWidget() {
     switch (_selectedDrawerIndex) {
       case 0:
-        return UserList(
-          firebaseMessaging: _firebaseMessaging,
-          notificationService: _notificationService,
-        );
+        return UserList();
       default:
         return Container();
     }

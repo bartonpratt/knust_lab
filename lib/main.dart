@@ -36,26 +36,9 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final String initialRoute;
-  final NotificationService notificationService;
+  final NotificationService notificationService = NotificationService();
 
-  MyApp(this.initialRoute, this.notificationService) {
-    _initializeFirebaseMessaging();
-  }
-
-  void _initializeFirebaseMessaging() {
-    // Listen to incoming messages when the app is in the foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.data.isNotEmpty) {
-        String title = message.data['title'] ?? '';
-        String body = message.data['body'] ?? '';
-        // Handle the data and show the notification using Flutter Local Notifications
-        notificationService.showNotification(
-          title: title,
-          body: body,
-        );
-      }
-    });
-  }
+  MyApp(this.initialRoute, notificationService, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

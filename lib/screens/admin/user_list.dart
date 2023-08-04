@@ -2,16 +2,10 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:knust_lab/screens/services/notification_service.dart';
 
 class UserList extends StatefulWidget {
-  final FirebaseMessaging firebaseMessaging;
-  final NotificationService notificationService;
-
-  const UserList({
+  UserList({
     Key? key,
-    required this.firebaseMessaging,
-    required this.notificationService,
   }) : super(key: key);
 
   @override
@@ -19,7 +13,6 @@ class UserList extends StatefulWidget {
 }
 
 class _UserListState extends State<UserList> {
-  late NotificationService _notificationService;
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
       .collection('users')
       .where('role', isEqualTo: 'user')
@@ -30,7 +23,6 @@ class _UserListState extends State<UserList> {
   @override
   void initState() {
     super.initState();
-    _notificationService = widget.notificationService;
   }
 
   @override
@@ -59,14 +51,6 @@ class _UserListState extends State<UserList> {
         'timestamp': DateTime.now(), // Set the timestamp using DateTime.now()
       };
 
-      final userDetails = await _getUserDetails(userId);
-      if (userDetails != null) {
-        final userToken = userDetails['fcmToken'];
-        if (userToken != null) {
-          await _sendUserStatusNotification(userId, status, userToken);
-        }
-      }
-
       // Check if the userNotifications document exists
       userNotificationsCollection.doc(userId).get().then((snapshot) {
         if (snapshot.exists) {
@@ -75,6 +59,22 @@ class _UserListState extends State<UserList> {
             'notifications': FieldValue.arrayUnion([notificationData])
           }).then((_) {
             debugPrint('Notification added to user $userId');
+            if (status == 'Completed') {
+              final doctorNotificationData = {
+                'title': 'Doctor Appointment',
+                'body': 'You can now go and see the doctor',
+                'timestamp': DateTime.now(),
+              };
+              userNotificationsCollection.doc(userId).update({
+                'notifications': FieldValue.arrayUnion([doctorNotificationData])
+              }).then((_) {
+                debugPrint(
+                    'Doctor appointment notification added to user $userId');
+              }).catchError((error) {
+                debugPrint(
+                    'Failed to add doctor appointment notification to user $userId: $error');
+              });
+            }
           }).catchError((error) {
             debugPrint('Failed to add notification to user $userId: $error');
           });
@@ -117,21 +117,6 @@ class _UserListState extends State<UserList> {
     return null;
   }
 
-  Future<void> _sendUserStatusNotification(
-      String userId, String status, String userToken) async {
-    try {
-      print('Sending notification to user: $userId, FCM Token: $userToken');
-      await _notificationService.showNotification(
-        title: 'Status Update',
-        body: 'Your status has been updated to $status',
-      );
-
-      print('Notification sent to user: $userId');
-    } catch (e) {
-      print('Error sending user status notification: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -147,6 +132,12 @@ class _UserListState extends State<UserList> {
             },
             decoration: InputDecoration(
               labelText: 'Search by Hospital ID',
+              prefixIcon: IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {
+                  // Perform the search here
+                },
+              ),
               suffixIcon: IconButton(
                 icon: const Icon(Icons.clear),
                 onPressed: () {
@@ -156,6 +147,9 @@ class _UserListState extends State<UserList> {
                   });
                   FocusScope.of(context).unfocus();
                 },
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20.0),
               ),
             ),
           ),
@@ -192,8 +186,7 @@ class _UserListState extends State<UserList> {
                     userId: userDoc.id,
                     hospitalId: userData['hospitalId'] as int?,
                     userData: userData,
-                    notificationService:
-                        _notificationService, // Pass the notification service to UserCard
+                    // Pass the notification service to UserCard
                     updateStatus: (newStatus) async {
                       await _updateUserStatus(userDoc.id, newStatus);
                       setState(() {
@@ -215,7 +208,7 @@ class UserCard extends StatefulWidget {
   final String userId;
   final int? hospitalId;
   final Map<String, dynamic> userData;
-  final NotificationService notificationService;
+
   final Function(String) updateStatus;
 
   UserCard({
@@ -223,7 +216,6 @@ class UserCard extends StatefulWidget {
     required this.userId,
     required this.hospitalId,
     required this.userData,
-    required this.notificationService,
     required this.updateStatus,
   }) : super(key: key);
 

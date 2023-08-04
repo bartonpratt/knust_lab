@@ -39,7 +39,7 @@ class AboutPage extends StatelessWidget {
             ),
             SizedBox(height: 8.0),
             Text(
-                'KNUST Lab is a comprehensive healthcare tracking application that allows users to manage their medical information, appointments, and prescriptions. With an intuitive interface and powerful features, Meditrack helps users stay organized and informed about their healthcare needs.'),
+                'KNUST Lab is a comprehensive healthcare tracking application that allows users to manage their medical information, appointments, and prescriptions. With an intuitive interface and powerful features, KNUST Lab helps users stay organized and informed about their healthcare needs.'),
             SizedBox(height: 16.0),
             Text(
               'Features',
