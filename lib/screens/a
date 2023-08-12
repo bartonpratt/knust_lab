@@ -1,0 +1,7 @@
+i want to implement the timer countdown functionality and update the user's status based on the timer completion: 
+
+Update Firestore Document Structure: Add a new field to the user's document in Firestore to store the timestamp when the timer should complete.
+
+Modify Dashboard Logic: In the dashboard, when a user's status is set to "Processing," calculate the timestamp when the timer should complete and update the Firestore document accordingly.
+
+Start Timer on User's Dashboard: In the user's dashboard, if the user's status is "Processing" and the timer completion timestamp is set, start a countdown timer. When the timer completes, update the user's status to "Completed."

@@ -1,14 +1,14 @@
 //dashboard.dart
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:knust_lab/screens/services/notification_service.dart';
-import 'navigation_drawer.dart';
 import 'package:collection/collection.dart';
+import 'navigation_drawer.dart';
+import 'package:knust_lab/screens/services/notification_service.dart';
 
 class DashboardPage extends StatefulWidget {
-  final NotificationService notificationService; // Add this line
+  final NotificationService notificationService;
   DashboardPage({required this.notificationService});
 
   @override
@@ -18,7 +18,6 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   final User? currentUser = FirebaseAuth.instance.currentUser;
 
-  // Add this constructor
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +27,7 @@ class _DashboardPageState extends State<DashboardPage> {
             return IconButton(
               icon: Icon(Icons.menu),
               onPressed: () {
-                Scaffold.of(context).openDrawer(); // Open the navigation drawer
+                Scaffold.of(context).openDrawer();
               },
             );
           },
@@ -88,12 +87,17 @@ class _DashboardPageState extends State<DashboardPage> {
                           status: currentUserData['status'] ?? 'Not Started',
                           name: currentUserData['name'] ?? '',
                           highlight: true,
+                          timerCompletionTimestamp:
+                              currentUserData['timerCompletionTimestamp']
+                                  ?.toDate(),
                         ),
                       ...otherUsersData.map((userData) => _buildUserCard(
                             id: 'Hospital ID: ${userData['hospitalId'] ?? ''}',
                             status: userData['status'] ?? 'Not Started',
                             name: userData['name'] ?? '',
                             highlight: false,
+                            timerCompletionTimestamp:
+                                userData['timerCompletionTimestamp']?.toDate(),
                           )),
                     ],
                   ),
@@ -104,7 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
       drawer: buildNavigationDrawer(context, () {
-        Navigator.pop(context); // Close the drawer
+        Navigator.pop(context);
       }),
     );
   }
@@ -114,6 +118,7 @@ class _DashboardPageState extends State<DashboardPage> {
     required String status,
     required String name,
     required bool highlight,
+    required DateTime? timerCompletionTimestamp,
   }) {
     Color statusColor = _getStatusColor(status);
     Color backgroundColor =
@@ -129,6 +134,8 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (status == 'Processing' && timerCompletionTimestamp != null)
+                _buildCountdownTimer(timerCompletionTimestamp),
               Text(
                 'Current User',
                 style: TextStyle(
@@ -221,6 +228,35 @@ class _DashboardPageState extends State<DashboardPage> {
         return Colors.green;
       default:
         return Colors.grey;
+    }
+  }
+
+  Widget _buildCountdownTimer(DateTime timerCompletionTimestamp) {
+    final now = DateTime.now();
+    final timerEndTime = timerCompletionTimestamp;
+
+    if (now.isBefore(timerEndTime)) {
+      final remainingDuration = timerEndTime.difference(now);
+
+      final remainingMinutes = remainingDuration.inMinutes;
+      final remainingSeconds = remainingDuration.inSeconds % 60;
+
+      final formattedRemainingTime =
+          '$remainingMinutes:${remainingSeconds.toString().padLeft(2, '0')}';
+
+      return Text(
+        'Time left: $formattedRemainingTime',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    } else {
+      return const Text(
+        'Timer expired',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      );
     }
   }
 }

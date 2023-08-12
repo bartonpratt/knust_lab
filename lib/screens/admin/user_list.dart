@@ -1,4 +1,6 @@
 // user_list.dart
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -34,14 +36,21 @@ class _UserListState extends State<UserList> {
   Future<void> _updateUserStatus(String userId, String status) async {
     final userDocRef =
         FirebaseFirestore.instance.collection('users').doc(userId);
-    final userDocSnapshot = await userDocRef.get();
-    final userData = userDocSnapshot.data();
-    final hospitalId = userData?['hospitalId'] as int?;
-    final currentStatus = userData?['status'] as String? ?? 'Not Started';
+    final timerDuration = const Duration(minutes: 30);
 
+    final timerCompletionTimestamp = DateTime.now().add(timerDuration);
     try {
-      await userDocRef.update({'status': status});
+      await userDocRef.update({
+        'status': status,
+        'timerCompletionTimestamp': timerCompletionTimestamp,
+      });
       debugPrint('Your status has been updated to $status');
+      // Set a timer to automatically change status to "Completed"
+      Timer(timerDuration, () async {
+        await userDocRef.update({
+          'status': 'Completed',
+        });
+      });
 
       final userNotificationsCollection =
           FirebaseFirestore.instance.collection('userNotifications');

@@ -21,27 +21,6 @@ class _NotificationPageState extends State<NotificationPage> {
     super.initState();
     if (_user != null) {
       _notificationService.initialize();
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        _handleMessage(message);
-      });
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        _handleMessage(message);
-      });
-    }
-  }
-
-  // Function to handle incoming messages when the app is in the background or terminated
-  void _handleMessage(RemoteMessage message) {
-    print(
-        'Received notification: ${message.notification?.title} - ${message.notification?.body}');
-    if (message.notification != null) {
-      String title = message.notification!.title ?? '';
-      String body = message.notification!.body ?? '';
-      // Show the notification using Flutter Local Notifications
-      _notificationService.showNotification(
-        title: title,
-        body: body,
-      );
     }
   }
 
