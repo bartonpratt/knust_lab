@@ -61,26 +61,6 @@ class _NotificationPageState extends State<NotificationPage> {
             );
           }
 
-          // Process and show the notifications
-          // You can use a Set to avoid showing duplicate notifications
-          final Set<String> shownNotifications = Set<String>();
-          for (final notificationData in notifications) {
-            final title = notificationData['title'] as String;
-            final body = notificationData['body'] as String;
-
-            // Check if this notification has already been shown
-            final notificationKey = '$title|$body';
-            if (!shownNotifications.contains(notificationKey)) {
-              shownNotifications.add(notificationKey);
-
-              // Show the notification using Flutter Local Notifications
-              _notificationService.showNotification(
-                title: title,
-                body: body,
-              );
-            }
-          }
-
           return ListView.builder(
             itemCount: notifications.length,
             itemBuilder: (context, index) {

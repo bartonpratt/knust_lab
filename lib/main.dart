@@ -62,9 +62,7 @@ class MyApp extends StatelessWidget {
         '/signin': (context) => SignInPage(),
         '/signup': (context) => SignUpPage(),
         '/email_confirmation': (context) => EmailConfirmationPage(),
-        '/dashboard': (context) => DashboardPage(
-              notificationService: notificationService,
-            ),
+        '/dashboard': (context) => DashboardPage(),
         '/admin': (context) => AdminPanelPage(),
         '/notifications': (context) => NotificationPage(),
         '/profile': (context) => ProfilePage(),

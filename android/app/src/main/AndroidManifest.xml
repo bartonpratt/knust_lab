@@ -22,7 +22,9 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/primary_color/" /> -->
 
-       
+         <service
+            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingBackgroundService"
+            android:exported="false" />
         
         <receiver
             android:name="com.example.knust_lab.FirebaseMessagingBroadcastReceiver"

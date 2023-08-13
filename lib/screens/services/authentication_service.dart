@@ -168,4 +168,6 @@ class AuthenticationService {
       throw e;
     }
   }
+
+  updateUserStatus(String userId, String newStatus) {}
 }

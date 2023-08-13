@@ -8,8 +8,7 @@ import 'navigation_drawer.dart';
 import 'package:knust_lab/screens/services/notification_service.dart';
 
 class DashboardPage extends StatefulWidget {
-  final NotificationService notificationService;
-  DashboardPage({required this.notificationService});
+  DashboardPage();
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -252,7 +251,7 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     } else {
       return const Text(
-        'Timer expired',
+        'Results completed',
         style: TextStyle(
           fontWeight: FontWeight.bold,
         ),

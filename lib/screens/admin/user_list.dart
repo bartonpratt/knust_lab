@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:knust_lab/screens/services/notification_service.dart';
 
 class UserList extends StatefulWidget {
   UserList({
@@ -36,7 +37,7 @@ class _UserListState extends State<UserList> {
   Future<void> _updateUserStatus(String userId, String status) async {
     final userDocRef =
         FirebaseFirestore.instance.collection('users').doc(userId);
-    final timerDuration = const Duration(minutes: 30);
+    final timerDuration = const Duration(minutes: 1);
 
     final timerCompletionTimestamp = DateTime.now().add(timerDuration);
     try {
@@ -51,6 +52,12 @@ class _UserListState extends State<UserList> {
           'status': 'Completed',
         });
       });
+
+      // Send notification to user
+      await NotificationService().sendStatusUpdateNotification(
+        userId: userId,
+        newStatus: status,
+      );
 
       final userNotificationsCollection =
           FirebaseFirestore.instance.collection('userNotifications');
