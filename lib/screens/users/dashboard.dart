@@ -16,6 +16,26 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final User? currentUser = FirebaseAuth.instance.currentUser;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    // Update the timer every second
+    _timer = Timer.periodic(Duration(seconds: 1), (_) {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,14 +110,19 @@ class _DashboardPageState extends State<DashboardPage> {
                               currentUserData['timerCompletionTimestamp']
                                   ?.toDate(),
                         ),
-                      ...otherUsersData.map((userData) => _buildUserCard(
-                            id: 'Hospital ID: ${userData['hospitalId'] ?? ''}',
-                            status: userData['status'] ?? 'Not Started',
-                            name: userData['name'] ?? '',
-                            highlight: false,
-                            timerCompletionTimestamp:
-                                userData['timerCompletionTimestamp']?.toDate(),
-                          )),
+                      ...otherUsersData
+                          .sorted((a, b) =>
+                              _getStatusSortValue(a['status']) -
+                              _getStatusSortValue(b['status']))
+                          .map((userData) => _buildUserCard(
+                                id: 'Hospital ID: ${userData['hospitalId'] ?? ''}',
+                                status: userData['status'] ?? 'Not Started',
+                                name: userData['name'] ?? '',
+                                highlight: false,
+                                timerCompletionTimestamp:
+                                    userData['timerCompletionTimestamp']
+                                        ?.toDate(),
+                              )),
                     ],
                   ),
                 );
@@ -110,6 +135,19 @@ class _DashboardPageState extends State<DashboardPage> {
         Navigator.pop(context);
       }),
     );
+  }
+
+  int _getStatusSortValue(String status) {
+    switch (status) {
+      case 'Completed':
+        return 0;
+      case 'Processing':
+        return 1;
+      case 'Not Started':
+        return 2;
+      default:
+        return 3; // For any other status
+    }
   }
 
   Widget _buildUserCard({

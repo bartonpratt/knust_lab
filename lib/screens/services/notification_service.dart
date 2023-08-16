@@ -27,10 +27,13 @@ class NotificationService {
     // Initialize Firebase Messaging
     await _firebaseMessaging.requestPermission();
 
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
     // Set up Firebase onMessage callback
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final title = message.notification?.title ?? 'Notification';
-      final body = message.notification?.body ?? 'You have a new notification';
+      final data = message.data;
+      final title = data['title'] ?? 'Notification';
+      final body = data['body'] ?? 'You have a new notification';
       showNotification(title: title, body: body);
     });
 
@@ -59,9 +62,9 @@ class NotificationService {
 
   Future<void> _firebaseMessagingBackgroundHandler(
       RemoteMessage message) async {
-    print("Handling a background message: ${message.messageId}");
-    final title = message.notification?.title ?? 'Notification';
-    final body = message.notification?.body ?? 'You have a new notification';
+    final data = message.data;
+    final title = data['title'] ?? 'Notification';
+    final body = data['body'] ?? 'You have a new notification';
     showNotification(title: title, body: body);
   }
 
@@ -70,13 +73,22 @@ class NotificationService {
     required String newStatus,
   }) async {
     try {
-      final userDetails = await AuthenticationService().getCurrentUser();
-      final userName = userDetails?['name'] ?? 'User';
+      final user = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      final userName = user['name'] ?? 'User';
+
+      final statusUpdateMessage =
+          'Hello $userName, your status has been updated to $newStatus';
 
       await sendUserNotification(
         userId: userId,
-        title: 'Status Update',
-        body: 'My status has been updated to $newStatus by the admin.',
+        data: {
+          'title': 'Status Update',
+          'body': statusUpdateMessage,
+          // Include additional custom data here if needed
+        },
       );
     } catch (e) {
       print('Error sending status update notification: $e');
@@ -85,8 +97,7 @@ class NotificationService {
 
   Future<void> sendUserNotification({
     required String userId,
-    required String title,
-    required String body,
+    required Map<String, dynamic> data,
   }) async {
     final serverKey =
         'AAAAymXn9CY:APA91bFo6Ka9WUAdQvXEXRG6wtTol0lix9GTwaZyy6l7o-R1VQ74LO-ctvaTMK_kO60xfgyH9DkhwzYiUrbJgex3nTpKCQU-mbeMEy1uxGR9Rfh4Om0PfO1hrinmfoNNBrJ8WYKuS6gk';
@@ -105,10 +116,7 @@ class NotificationService {
         },
         body: jsonEncode({
           'to': userFCMToken,
-          'data': {
-            'title': title,
-            'body': body,
-          },
+          'data': data, // Send the data payload
         }),
       );
 

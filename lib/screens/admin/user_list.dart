@@ -51,6 +51,10 @@ class _UserListState extends State<UserList> {
         await userDocRef.update({
           'status': 'Completed',
         });
+        await NotificationService().sendStatusUpdateNotification(
+          userId: userId,
+          newStatus: status,
+        );
       });
 
       // Send notification to user
