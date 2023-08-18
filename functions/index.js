@@ -18,3 +18,20 @@
 //   response.send("Hello from Firebase!");
 // });
 
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
+
+exports.createCustomToken = functions.https.onCall(async (data, context) => {
+  const hospitalId = data.hospitalId;
+
+  // You might want to perform some validation here
+  // to make sure the hospitalId is valid.
+
+  const customClaims = { hospitalId: hospitalId };
+  const token = await admin.auth().createCustomToken(hospitalId, customClaims);
+
+  return { token: token };
+});
+
+

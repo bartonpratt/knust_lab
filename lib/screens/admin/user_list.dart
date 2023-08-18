@@ -34,10 +34,10 @@ class _UserListState extends State<UserList> {
     super.dispose();
   }
 
-  Future<void> _updateUserStatus(String userId, String status) async {
+  Future<void> _updateUserStatus(
+      String userId, String status, Duration timerDuration) async {
     final userDocRef =
         FirebaseFirestore.instance.collection('users').doc(userId);
-    final timerDuration = const Duration(minutes: 1);
 
     final timerCompletionTimestamp = DateTime.now().add(timerDuration);
     try {
@@ -207,11 +207,17 @@ class _UserListState extends State<UserList> {
                     hospitalId: userData['hospitalId'] as int?,
                     userData: userData,
                     // Pass the notification service to UserCard
-                    updateStatus: (newStatus) async {
-                      await _updateUserStatus(userDoc.id, newStatus);
-                      setState(() {
-                        userData['status'] = newStatus;
-                      });
+                    updateStatus: (newStatus, timerDuration) async {
+                      try {
+                        await _updateUserStatus(
+                            userDoc.id, newStatus, timerDuration);
+                        setState(() {
+                          userData['status'] = newStatus;
+                        });
+                      } catch (e) {
+                        debugPrint('Error updating status: $e');
+                        // Handle the error here (e.g., show a snackbar)
+                      }
                     },
                   );
                 },
@@ -229,7 +235,7 @@ class UserCard extends StatefulWidget {
   final int? hospitalId;
   final Map<String, dynamic> userData;
 
-  final Function(String) updateStatus;
+  final Function(String, Duration) updateStatus;
 
   UserCard({
     Key? key,
@@ -246,11 +252,56 @@ class UserCard extends StatefulWidget {
 class _UserCardState extends State<UserCard> {
   String get status => widget.userData['status'] as String? ?? 'Not Started';
   String selectedStatus = '';
+  Duration selectedTimerDuration = Duration.zero;
 
   @override
   void initState() {
     super.initState();
     selectedStatus = status;
+  }
+
+  void _setProcessingTimer(Duration initialDuration) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Duration selectedDuration = initialDuration;
+
+        return AlertDialog(
+          title: Text('Select Timer Duration'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text('Malaria (1 min)'),
+                onTap: () {
+                  setState(() {
+                    selectedTimerDuration = Duration(minutes: 1);
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: Text('Cholera (2 mins)'),
+                onTap: () {
+                  setState(() {
+                    selectedTimerDuration = Duration(minutes: 2);
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -278,6 +329,10 @@ class _UserCardState extends State<UserCard> {
                     setState(() {
                       selectedStatus = newValue!;
                     });
+                    if (selectedStatus == 'Processing') {
+                      _setProcessingTimer(Duration(
+                          minutes: 10)); // Update this duration as needed
+                    }
                   },
                   items: <String>['Not Started', 'Processing', 'Completed']
                       .map<DropdownMenuItem<String>>((String value) {
@@ -293,11 +348,34 @@ class _UserCardState extends State<UserCard> {
             Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  await widget.updateStatus(selectedStatus);
-                  final snackBar = SnackBar(
-                    content: Text('Status updated to $selectedStatus'),
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  try {
+                    if (selectedStatus == 'Processing') {
+                      if (selectedTimerDuration == Duration.zero) {
+                        // Admin hasn't selected the timer yet
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please select a timer duration.'),
+                          ),
+                        );
+                      } else {
+                        await widget.updateStatus(
+                            selectedStatus, selectedTimerDuration);
+                        final snackBar = SnackBar(
+                          content: Text('Status updated to $selectedStatus'),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                      }
+                    } else {
+                      await widget.updateStatus(selectedStatus, Duration.zero);
+                      final snackBar = SnackBar(
+                        content: Text('Status updated to $selectedStatus'),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                    }
+                  } catch (e) {
+                    debugPrint('Error updating status: $e');
+                    // Handle the error here (e.g., show a snackbar)
+                  }
                 },
                 child: const Text('Update Status'),
               ),

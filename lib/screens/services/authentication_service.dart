@@ -95,6 +95,32 @@ class AuthenticationService {
     }
   }
 
+  Future<Map<String, dynamic>?> signInWithHospitalID(int hospitalId) async {
+    try {
+      final QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('hospitalId', isEqualTo: hospitalId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final userDocument =
+            querySnapshot.docs.first.data() as Map<String, dynamic>;
+        if (userDocument != null) {
+          final role = userDocument['role'] as String?;
+          if (role != null) {
+            return {'user': userDocument, 'role': role};
+          }
+        }
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('Sign in with hospital ID error: $e');
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>?> signInWithEmailAndPassword(
       String email, String password) async {
     try {

@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:knust_lab/screens/auth/email_confirmation_page.dart';
+import 'package:knust_lab/screens/auth/sign_in_user.dart';
 import 'package:knust_lab/screens/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:knust_lab/screens/splash.dart';
