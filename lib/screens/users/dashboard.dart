@@ -75,8 +75,10 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream:
-                  FirebaseFirestore.instance.collection('users').snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .where('role', isNotEqualTo: 'admin')
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Center(
@@ -283,16 +285,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
       return Text(
         'Time left: $formattedRemainingTime',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
       );
     } else {
       return const Text(
         'Results completed',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
       );
     }
   }

@@ -1,7 +1,9 @@
 //sign_in.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:knust_lab/screens/auth/authState.dart';
 import 'package:knust_lab/screens/auth/sign_up.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/authentication_service.dart';
 
@@ -12,8 +14,7 @@ class SignInPage extends StatefulWidget {
 
 class _SignInPageState extends State<SignInPage> {
   final AuthenticationService _authenticationService = AuthenticationService();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  late TextEditingController _hospitalIdController = TextEditingController();
   String _errorMessage = '';
   bool _passwordVisible = false;
   bool _isLoading = false;
@@ -21,6 +22,7 @@ class _SignInPageState extends State<SignInPage> {
   @override
   void initState() {
     super.initState();
+    _hospitalIdController = TextEditingController();
     checkUserLoggedIn();
   }
 
@@ -39,44 +41,43 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   Future<void> _signIn() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+    final hospitalId = int.tryParse(_hospitalIdController.text.trim());
+
+    if (hospitalId == null) {
+      setState(() {
+        _errorMessage = 'Invalid hospital ID';
+      });
+      return;
+    }
+
+    print('Hospital ID entered: $hospitalId');
 
     try {
-      if (email.isNotEmpty && password.isNotEmpty) {
-        setState(() {
-          _isLoading = true;
-          _errorMessage = '';
-        });
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
 
-        final user = await _authenticationService.signInWithEmailAndPassword(
-          email,
-          password,
-        );
+      final signInResult =
+          await _authenticationService.signInWithHospitalId(hospitalId);
 
-        setState(() {
-          _isLoading = false;
-        });
+      setState(() {
+        _isLoading = false;
+      });
 
-        if (user != null) {
-          final preferences = await SharedPreferences.getInstance();
-          await preferences.setBool('isLoggedIn', true);
+      if (signInResult != null) {
+        final role = signInResult['role'];
+        final preferences = await SharedPreferences.getInstance();
+        await preferences.setBool('isLoggedIn', true);
 
-          final role = user['role'];
-
-          if (role == 'admin') {
-            Navigator.pushReplacementNamed(context, '/admin');
-          } else {
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          }
+        if (role == 'admin') {
+          Navigator.pushReplacementNamed(context, '/admin');
         } else {
-          setState(() {
-            _errorMessage = 'Invalid email or password';
-          });
+          Navigator.pushReplacementNamed(context, '/dashboard');
         }
       } else {
         setState(() {
-          _errorMessage = 'Please enter email and password';
+          _errorMessage = 'Hospital ID not found';
         });
       }
     } catch (error) {
@@ -87,55 +88,18 @@ class _SignInPageState extends State<SignInPage> {
     }
   }
 
-  void _resetPassword(BuildContext context) {
-    TextEditingController _emailController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Reset Password'),
-          content: TextField(
-            controller: _emailController,
-            decoration: InputDecoration(labelText: 'Enter your email'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                String email = _emailController.text.trim();
-                if (email.isNotEmpty) {
-                  try {
-                    // Call the function to reset the password
-                    await _authenticationService.resetPassword(email);
-                    Navigator.pop(context); // Close the dialog
-                    _showSnackBar(context, 'Password reset email sent.');
-                  } catch (e) {
-                    print('Error sending password reset email: $e');
-                    _showSnackBar(context,
-                        'Error sending reset email. Please try again.');
-                  }
-                } else {
-                  _showSnackBar(context, 'Please enter your email.');
-                }
-              },
-              child: Text('Reset'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _hospitalIdController.dispose(); // Dispose of the TextEditingController
+    super.dispose();
   }
 
   @override
@@ -189,50 +153,12 @@ class _SignInPageState extends State<SignInPage> {
                           ),
                           SizedBox(height: 16.0),
                           TextField(
-                            controller: _emailController,
+                            controller: _hospitalIdController,
                             decoration: InputDecoration(
-                              labelText: 'Email',
+                              labelText: 'Hospital ID',
                             ),
-                            keyboardType: TextInputType.emailAddress,
                           ),
                           SizedBox(height: 8.0),
-                          TextField(
-                            controller: _passwordController,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _passwordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _passwordVisible = !_passwordVisible;
-                                  });
-                                },
-                              ),
-                            ),
-                            obscureText: !_passwordVisible,
-                          ),
-                          SizedBox(height: 16.0),
-                          // Add "Forgot Password" link here
-                          SizedBox(height: 16.0),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: GestureDetector(
-                              onTap: () => _resetPassword(context),
-                              child: Text(
-                                'Forgot Password?',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.0,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 16.0),
                           Container(
                             width: double.infinity,
                             child: ElevatedButton(

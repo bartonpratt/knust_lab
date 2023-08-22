@@ -95,7 +95,7 @@ class AuthenticationService {
     }
   }
 
-  Future<Map<String, dynamic>?> signInWithHospitalID(int hospitalId) async {
+  Future<Map<String, dynamic>?> signInWithHospitalId(int hospitalId) async {
     try {
       final QuerySnapshot querySnapshot = await _firestore
           .collection('users')
@@ -104,16 +104,20 @@ class AuthenticationService {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        final userDocument =
+        final userDetails =
             querySnapshot.docs.first.data() as Map<String, dynamic>;
-        if (userDocument != null) {
-          final role = userDocument['role'] as String?;
-          if (role != null) {
-            return {'user': userDocument, 'role': role};
+        print('User Details: $userDetails'); // Print the userDetails map
+
+        if (userDetails != null) {
+          final role = userDetails['role'] as String;
+          final signInResult = await signInWithEmailAndPassword(
+              userDetails['email'], userDetails['password']);
+
+          if (signInResult != null) {
+            return userDetails; // Return the userDetails map
           }
         }
       }
-
       return null;
     } catch (e) {
       debugPrint('Sign in with hospital ID error: $e');

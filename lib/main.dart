@@ -1,10 +1,10 @@
 // main.dart
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:knust_lab/screens/auth/authState.dart';
 import 'package:knust_lab/screens/auth/email_confirmation_page.dart';
-import 'package:knust_lab/screens/auth/sign_in_user.dart';
 import 'package:knust_lab/screens/services/notification_service.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:knust_lab/screens/splash.dart';
 import 'package:knust_lab/screens/auth/sign_in.dart';
@@ -14,7 +14,6 @@ import 'package:knust_lab/screens/admin/admin_panel.dart';
 import 'package:knust_lab/screens/users/notification_page.dart';
 import 'package:knust_lab/screens/users/profile.dart';
 import 'package:knust_lab/screens/users/about.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -32,14 +31,20 @@ void main() async {
   final isLoggedIn = preferences.getBool('isLoggedIn') ?? false;
   String initialRoute = isLoggedIn ? '/splash' : '/signin';
 
-  runApp(MyApp(initialRoute, notificationService));
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthenticationState(),
+      child: MyApp(initialRoute, notificationService),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   final String initialRoute;
-  final NotificationService notificationService = NotificationService();
+  final NotificationService notificationService;
 
-  MyApp(this.initialRoute, notificationService, {Key? key}) : super(key: key);
+  MyApp(this.initialRoute, this.notificationService, {Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {

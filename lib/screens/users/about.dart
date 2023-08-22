@@ -28,7 +28,7 @@ class AboutPage extends StatelessWidget {
             SizedBox(height: 8.0),
             Text('Index Numbers: 9411519 & 9413219'),
             SizedBox(height: 8.0),
-            Text('Email: contact@yourcompany.com'),
+            Text('Email: bartBright@knustlab.com'),
             SizedBox(height: 16.0),
             Text(
               'Description',

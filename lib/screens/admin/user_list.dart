@@ -6,6 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:knust_lab/screens/services/notification_service.dart';
 
+// Status constants
+class UserStatus {
+  static const String notStarted = 'Not Started';
+  static const String processing = 'Processing';
+  static const String completed = 'Completed';
+}
+
 class UserList extends StatefulWidget {
   UserList({
     Key? key,
@@ -34,6 +41,12 @@ class _UserListState extends State<UserList> {
     super.dispose();
   }
 
+  void showSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _updateUserStatus(
       String userId, String status, Duration timerDuration) async {
     final userDocRef =
@@ -49,7 +62,7 @@ class _UserListState extends State<UserList> {
       // Set a timer to automatically change status to "Completed"
       Timer(timerDuration, () async {
         await userDocRef.update({
-          'status': 'Completed',
+          'status': UserStatus.completed,
         });
         await NotificationService().sendStatusUpdateNotification(
           userId: userId,
@@ -79,7 +92,7 @@ class _UserListState extends State<UserList> {
             'notifications': FieldValue.arrayUnion([notificationData])
           }).then((_) {
             debugPrint('Notification added to user $userId');
-            if (status == 'Completed') {
+            if (status == UserStatus.completed) {
               final doctorNotificationData = {
                 'title': 'Doctor Appointment',
                 'body': 'You can now go and see the doctor',
@@ -216,7 +229,7 @@ class _UserListState extends State<UserList> {
                         });
                       } catch (e) {
                         debugPrint('Error updating status: $e');
-                        // Handle the error here (e.g., show a snackbar)
+                        showSnackbar(context, 'Failed to update status');
                       }
                     },
                   );
@@ -250,7 +263,8 @@ class UserCard extends StatefulWidget {
 }
 
 class _UserCardState extends State<UserCard> {
-  String get status => widget.userData['status'] as String? ?? 'Not Started';
+  String get status =>
+      widget.userData['status'] as String? ?? UserStatus.notStarted;
   String selectedStatus = '';
   Duration selectedTimerDuration = Duration.zero;
 
@@ -304,6 +318,12 @@ class _UserCardState extends State<UserCard> {
     );
   }
 
+  void showSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -329,13 +349,16 @@ class _UserCardState extends State<UserCard> {
                     setState(() {
                       selectedStatus = newValue!;
                     });
-                    if (selectedStatus == 'Processing') {
+                    if (selectedStatus == UserStatus.processing) {
                       _setProcessingTimer(Duration(
                           minutes: 10)); // Update this duration as needed
                     }
                   },
-                  items: <String>['Not Started', 'Processing', 'Completed']
-                      .map<DropdownMenuItem<String>>((String value) {
+                  items: <String>[
+                    UserStatus.notStarted,
+                    UserStatus.processing,
+                    UserStatus.completed
+                  ].map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
@@ -349,7 +372,7 @@ class _UserCardState extends State<UserCard> {
               child: ElevatedButton(
                 onPressed: () async {
                   try {
-                    if (selectedStatus == 'Processing') {
+                    if (selectedStatus == UserStatus.processing) {
                       if (selectedTimerDuration == Duration.zero) {
                         // Admin hasn't selected the timer yet
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -360,10 +383,8 @@ class _UserCardState extends State<UserCard> {
                       } else {
                         await widget.updateStatus(
                             selectedStatus, selectedTimerDuration);
-                        final snackBar = SnackBar(
-                          content: Text('Status updated to $selectedStatus'),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                        showSnackbar(
+                            context, 'Status updated to $selectedStatus');
                       }
                     } else {
                       await widget.updateStatus(selectedStatus, Duration.zero);
