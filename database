@@ -1,26 +1,22 @@
-- userNotifications (collection)
-  - user1 (document ID = user's auto-generated ID)
-    - notifications (array field)
-      - 0 (notification index)
-        - title: "Status Update"
-        - body: "User 1 status updated to Completed"
-        - timestamp: <timestamp value>
-      - 1
-        - title: "New Notification"
-        - body: "User 1 has a new notification"
-        - timestamp: <timestamp value>
-  - user2
-    - notifications
-      - 0
-        - title: "Status Update"
-        - body: "User 2 status updated to In Progress"
-        - timestamp: <timestamp value>
-- users (collection)
-  - user1 (document ID = user's auto-generated ID)
-    - hospitalId: 12345
-    - status: "Completed"
-    - email: "john@gmail.com"
-    - name: "John"
-    - role: "user"
-    - fcmToken: "jfjbfufauhfufhufhuf-ijahjfjfbdjbbcghiaiidbd"
-  
+users Collection
+ └─ Document: uid
+     ├── email: String
+     ├── name: String
+     ├── hospitalId: Int
+     ├── role: String ("admin" or "user")
+     ├── status: String ("Not Started", "Processing", "Completed")
+     ├── timerCompletionTimestamp: Timestamp
+     └── avatarUrl: String (URL)
+
+ userNotifications Collection
+ └─ Document: uid
+     └── notifications (Array)
+         ├── title: String
+         ├── body: String
+         └── timestamp: Timestamp
+
+ Firebase Storage for Profile Pictures
+ ├── profile_images
+ │   ├── user_id_1.jpg
+ │   ├── user_id_2.jpg
+ │   └── user_id_3.jpg

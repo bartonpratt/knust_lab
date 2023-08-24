@@ -32,6 +32,8 @@ void main() async {
   final preferences = await SharedPreferences.getInstance();
   final isLoggedIn = preferences.getBool('isLoggedIn') ?? false;
   String initialRoute = isLoggedIn ? '/splash' : '/signin';
+  final dashboardTimer = DashboardTimer();
+  dashboardTimer.startTimer(() {});
 
   runApp(
     MultiProvider(
@@ -42,9 +44,6 @@ void main() async {
       child: MyApp(initialRoute, notificationService),
     ),
   );
-
-  final dashboardTimer = DashboardTimer();
-  dashboardTimer.startTimer(() {});
 }
 
 class MyApp extends StatelessWidget {
@@ -70,6 +69,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
       darkTheme: ThemeData(
+        primarySwatch: customPrimarySwatch,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
         brightness: Brightness.dark,
         primaryColor: customPrimaryColor,
         buttonTheme: const ButtonThemeData(

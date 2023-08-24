@@ -22,15 +22,29 @@ class AdminDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color: customPrimaryColor,
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: customPrimaryColor, // Set your desired background color
             ),
-            child: Text(
-              'Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset(
+                    'assets/images/logo-no.png', // Replace with your logo image path
+                    width: 80, // Adjust the width as needed
+                    height: 80, // Adjust the height as needed
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'KNUST Lab',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

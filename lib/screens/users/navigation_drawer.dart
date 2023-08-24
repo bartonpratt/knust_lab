@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:knust_lab/colors.dart';
 import 'package:knust_lab/screens/services/authentication_service.dart';
 
 Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
@@ -8,65 +9,31 @@ Drawer buildNavigationDrawer(BuildContext context, VoidCallback closeDrawer) {
     child: ListView(
       padding: EdgeInsets.zero,
       children: <Widget>[
-        Builder(
-          builder: (drawerContext) {
-            return FutureBuilder<Map<String, dynamic>?>(
-              future: _getCurrentUser(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const DrawerHeader(
-                    decoration: BoxDecoration(),
-                    child: Text(
-                      'Loading...',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                      ),
-                    ),
-                  );
-                } else if (snapshot.hasError) {
-                  return const DrawerHeader(
-                    decoration: BoxDecoration(),
-                    child: Text(
-                      'Error retrieving user details',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                      ),
-                    ),
-                  );
-                } else {
-                  final userDetails = snapshot.data;
-                  return UserAccountsDrawerHeader(
-                    accountName: Text(
-                      userDetails?['name'],
-                      style: const TextStyle(
-                        fontSize: 20,
-                      ),
-                    ),
-                    accountEmail: Text(
-                      userDetails?['email'],
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                    currentAccountPicture: GestureDetector(
-                      onTap: () {
-                        closeDrawer();
-                        Navigator.pushNamed(drawerContext, '/profile');
-                      },
-                      child: CircleAvatar(
-                        backgroundImage: userDetails?['avatarUrl'] != null
-                            ? NetworkImage(userDetails?['avatarUrl']!)
-                            : const AssetImage('assets/images/my_image.png')
-                                as ImageProvider<Object>,
-                      ),
-                    ),
-                  );
-                }
-              },
-            );
-          },
+        DrawerHeader(
+          decoration: const BoxDecoration(
+            color: customPrimaryColor, // Set your desired background color
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.asset(
+                  'assets/images/logo-no.png', // Replace with your logo image path
+                  width: 80, // Adjust the width as needed
+                  height: 80, // Adjust the height as needed
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'KNUST Lab',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         ListTile(
           leading: const Icon(Icons.home),

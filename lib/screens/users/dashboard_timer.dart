@@ -4,6 +4,14 @@ import 'package:flutter/material.dart';
 
 class DashboardTimer {
   late Timer _timer;
+  static DashboardTimer? _instance;
+
+  factory DashboardTimer() {
+    _instance ??= DashboardTimer._internal();
+    return _instance!;
+  }
+
+  DashboardTimer._internal();
 
   void startTimer(VoidCallback setStateCallback) {
     // Update the timer every second

@@ -23,6 +23,11 @@ class _DashboardPageState extends State<DashboardPage>
   void initState() {
     super.initState();
     dashboardTimer = DashboardTimer(); // Initialize
+    dashboardTimer.startTimer(() {
+      setState(() {
+        // Update the UI at every timer tick
+      });
+    });
   }
 
   @override
