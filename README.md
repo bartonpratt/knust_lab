@@ -12,6 +12,15 @@ The KNUST Lab App is a mobile application built using Flutter that allows users 
 * Dashboard: The app provides a dashboard that displays important metrics, user statistics, and notifications at a glance.
 
 ****Screenshots****
+![User Sign in](assets/images/user_signin.png)
+![Admin Sign in](assets/images/admin_signin.png)
+![User Dashboard](assets/images/dashboard.png)
+![Notification](assets/images/notifications.png)
+![Profile](assets/images/profile.png)
+![Admin Panel](assets/images/admin_panel.png)
+![About](about.png)
+![Nav Drawer](assets/images/nav_drawer.png)
+
 
 
 ****Installation****
