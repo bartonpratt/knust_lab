@@ -1,4 +1,5 @@
 ******KNUST Lab App******
+
 The KNUST Lab App is a mobile application built using Flutter that allows users to manage laboratory processes, notifications, and user statuses. The app facilitates communication between users, administrators, and the laboratory staff, providing a streamlined experience for laboratory-related tasks.
 
 **Features**
@@ -7,6 +8,8 @@ The KNUST Lab App is a mobile application built using Flutter that allows users 
 * **Notification System:** Users receive notifications related to their status updates and other important information. Administrators can send notifications to users.
 
 * **Admin Panel**: Administrators have access to an admin panel where they can manage user statuses and send notifications.
+
+* Dashboard: The app provides a dashboard that displays important metrics, user statistics, and notifications at a glance.
 
 ****Screenshots****
 
