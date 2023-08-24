@@ -13,6 +13,10 @@ class UserStatus {
   static const String completed = 'Completed';
 }
 
+//variables
+final userNotificationsCollection =
+    FirebaseFirestore.instance.collection('userNotifications');
+
 class UserList extends StatefulWidget {
   UserList({
     Key? key,
@@ -64,6 +68,7 @@ class _UserListState extends State<UserList> {
         await userDocRef.update({
           'status': UserStatus.completed,
         });
+
         await NotificationService().sendStatusUpdateNotification(
           userId: userId,
           newStatus: status,
@@ -76,8 +81,6 @@ class _UserListState extends State<UserList> {
         newStatus: status,
       );
 
-      final userNotificationsCollection =
-          FirebaseFirestore.instance.collection('userNotifications');
       final notificationData = {
         'title': 'Status Update',
         'body': 'Your status has been updated to $status',
