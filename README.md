@@ -37,4 +37,4 @@ Contributions are welcome! If you find a bug or want to add a new feature, pleas
 
 ****Acknowledgements****
 Special thanks to God for how far He has brought us.
-Special thanks to our supervisor, Dr. Gaddaffi
+Also, a big thank you to our supervisor, Dr. Gaddaffi for guiding us throghout the process.
