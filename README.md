@@ -30,11 +30,14 @@ The KNUST Lab App is a mobile application built using Flutter that allows users 
    flutter run
 
 ****Configuration****
+
 **Firebase Setup:** To use the notification features, you need to set up Firebase Cloud Messaging (FCM) in your Firebase project and update the necessary configuration files. See the Firebase documentation for more details.
 
 ****Contributing****
+
 Contributions are welcome! If you find a bug or want to add a new feature, please submit an issue or pull request.
 
 ****Acknowledgements****
+
 Special thanks to God for how far He has brought us.
 Also, a big thank you to our supervisor, Dr. Gaddaffi for guiding us throghout the process.
