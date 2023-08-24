@@ -16,7 +16,7 @@ The KNUST Lab App is a mobile application built using Flutter that allows users 
 
 ****Installation****
 1. Clone this repository to your local machine using:
-   git clone https://github.com/your-username/knust_lab_app.git
+   git clone https://github.com/bartonpratt/knust_lab.git
 
 2. Navigate to the project directory:
    cd knust_lab_app
