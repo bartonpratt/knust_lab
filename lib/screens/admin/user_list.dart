@@ -376,7 +376,7 @@ class _UserCardState extends State<UserCard> {
                       if (selectedTimerDuration == Duration.zero) {
                         // Admin hasn't selected the timer yet
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
+                          const SnackBar(
                             content: Text('Please select a timer duration.'),
                           ),
                         );
@@ -395,7 +395,6 @@ class _UserCardState extends State<UserCard> {
                     }
                   } catch (e) {
                     debugPrint('Error updating status: $e');
-                    // Handle the error here (e.g., show a snackbar)
                   }
                 },
                 child: const Text('Update Status'),

@@ -17,3 +17,14 @@ class AuthenticationState extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+class UserData extends ChangeNotifier {
+  Map<String, dynamic>? _userDetails;
+
+  Map<String, dynamic>? get userDetails => _userDetails;
+
+  void updateUserDetails(Map<String, dynamic> userDetails) {
+    _userDetails = userDetails;
+    notifyListeners();
+  }
+}

@@ -1,6 +1,7 @@
 // email_confirmation_page.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:knust_lab/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:android_intent/android_intent.dart';
 
@@ -142,7 +143,7 @@ class _EmailConfirmationPageState extends State<EmailConfirmationPage> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.blue,
+                          primary: customPrimaryColor,
                           padding: EdgeInsets.symmetric(
                               horizontal: 24, vertical: 12),
                         ),
@@ -183,7 +184,7 @@ class _EmailConfirmationPageState extends State<EmailConfirmationPage> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.blue,
+                          primary: customPrimaryColor,
                           padding: EdgeInsets.symmetric(
                               horizontal: 24, vertical: 12),
                         ),

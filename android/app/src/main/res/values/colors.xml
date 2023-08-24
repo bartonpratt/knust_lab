@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Define your custom colors -->
-    <color name="primary_color">#3F51B5</color>
+    <color name="primary_color">#050a30</color>
     <color name="accent_color">#FF4081</color>
     <color name="background_color">#F5F5F5</color>
     <color name="text_color">#212121</color>

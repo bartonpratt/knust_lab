@@ -1,5 +1,6 @@
 //admin_drawer.dart
 import 'package:flutter/material.dart';
+import 'package:knust_lab/colors.dart';
 import 'package:knust_lab/screens/services/authentication_service.dart';
 
 class AdminDrawer extends StatelessWidget {
@@ -23,7 +24,7 @@ class AdminDrawer extends StatelessWidget {
         children: <Widget>[
           const DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: customPrimaryColor,
             ),
             child: Text(
               'Menu',

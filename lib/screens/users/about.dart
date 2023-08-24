@@ -39,7 +39,7 @@ class AboutPage extends StatelessWidget {
             ),
             SizedBox(height: 8.0),
             Text(
-                'KNUST Lab is a comprehensive healthcare tracking application that allows users to manage their medical information, appointments, and prescriptions. With an intuitive interface and powerful features, KNUST Lab helps users stay organized and informed about their healthcare needs.'),
+                'KNUST Lab is a comprehensive healthcare tracking application that allows users to know their medical information, appointments. With an intuitive interface and powerful features, KNUST Lab helps users stay informed on the status of their lab results.'),
             SizedBox(height: 16.0),
             Text(
               'Features',
@@ -49,14 +49,9 @@ class AboutPage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 8.0),
-            Text(
-                '• Personalized dashboard to view medical information at a glance'),
-            Text('• Appointment scheduling and reminders'),
-            Text('• Prescription tracking and reminders'),
-            Text('• Secure storage of medical records'),
-            Text('• Notifications for important health updates'),
-            Text(
-                '• Integration with healthcare providers for seamless data access'),
+            Text('• Personalized dashboard to status at a glance'),
+            Text('• Real time updates to know remaining time left in queue'),
+            Text('• Seamless notifications of user status updates'),
           ],
         ),
       ),

@@ -9,6 +9,7 @@ class AuthenticationService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  Map<String, dynamic>? _cachedUserDetails; // Cache user details
 
   Future<bool> isAdmin(String email, String password) async {
     try {
@@ -106,16 +107,13 @@ class AuthenticationService {
       if (querySnapshot.docs.isNotEmpty) {
         final userDetails =
             querySnapshot.docs.first.data() as Map<String, dynamic>;
-        print('User Details: $userDetails'); // Print the userDetails map
+        debugPrint('User Details: $userDetails'); // Print the userDetails map
 
-        if (userDetails != null) {
-          final role = userDetails['role'] as String;
-          final signInResult = await signInWithEmailAndPassword(
-              userDetails['email'], userDetails['password']);
+        final signInResult = await signInWithEmailAndPassword(
+            userDetails['email'], userDetails['password']);
 
-          if (signInResult != null) {
-            return userDetails; // Return the userDetails map
-          }
+        if (signInResult != null) {
+          return userDetails; // Return the userDetails map
         }
       }
       return null;
@@ -150,23 +148,37 @@ class AuthenticationService {
     }
   }
 
+  Future<Map<String, dynamic>?> getUserDetails(String userId) async {
+    if (_cachedUserDetails != null) {
+      return _cachedUserDetails;
+    }
+
+    try {
+      final DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+          await _firestore.collection('users').doc(userId).get();
+
+      if (documentSnapshot.exists) {
+        final userDetails = documentSnapshot.data();
+        userDetails!['uid'] = userId;
+        _cachedUserDetails = userDetails; // Store in cache
+        debugPrint('User Details: $userDetails');
+        return userDetails;
+      } else {
+        debugPrint('User document does not exist');
+      }
+    } catch (e) {
+      debugPrint('Error retrieving user details: $e');
+    }
+
+    return null;
+  }
+
   Future<Map<String, dynamic>?> getCurrentUser() async {
     try {
       final User? user = _firebaseAuth.currentUser;
 
       if (user != null) {
-        final DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
-            await _firestore.collection('users').doc(user.uid).get();
-
-        if (documentSnapshot.exists) {
-          final userDetails = documentSnapshot.data();
-          userDetails!['uid'] =
-              user.uid; // Add the user's ID to the userDetails map
-          debugPrint('User Details: $userDetails');
-          return userDetails;
-        } else {
-          debugPrint('User document does not exist');
-        }
+        return await getUserDetails(user.uid);
       } else {
         debugPrint('User is null');
       }
@@ -198,6 +210,4 @@ class AuthenticationService {
       throw e;
     }
   }
-
-  updateUserStatus(String userId, String newStatus) {}
 }

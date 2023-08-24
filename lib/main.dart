@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:knust_lab/screens/auth/authState.dart';
 import 'package:knust_lab/screens/auth/email_confirmation_page.dart';
 import 'package:knust_lab/screens/services/notification_service.dart';
+import 'package:knust_lab/screens/users/dashboard_timer.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:knust_lab/screens/splash.dart';
@@ -14,6 +15,7 @@ import 'package:knust_lab/screens/admin/admin_panel.dart';
 import 'package:knust_lab/screens/users/notification_page.dart';
 import 'package:knust_lab/screens/users/profile.dart';
 import 'package:knust_lab/screens/users/about.dart';
+import 'colors.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -32,11 +34,17 @@ void main() async {
   String initialRoute = isLoggedIn ? '/splash' : '/signin';
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthenticationState(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthenticationState()),
+        ChangeNotifierProvider(create: (context) => UserData()),
+      ],
       child: MyApp(initialRoute, notificationService),
     ),
   );
+
+  final dashboardTimer = DashboardTimer();
+  dashboardTimer.startTimer(() {});
 }
 
 class MyApp extends StatelessWidget {
@@ -52,14 +60,22 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'KNUST Lab',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: customPrimarySwatch,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         brightness: Brightness.light,
-        primaryColor: Colors.blue,
+        primaryColor: customPrimaryColor,
+        buttonTheme: const ButtonThemeData(
+          textTheme: ButtonTextTheme.primary,
+          buttonColor: customPrimaryColor,
+        ),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.blue,
+        primaryColor: customPrimaryColor,
+        buttonTheme: const ButtonThemeData(
+          textTheme: ButtonTextTheme.primary,
+          buttonColor: customPrimaryColor,
+        ),
       ),
       initialRoute: initialRoute,
       navigatorKey: navigatorKey,

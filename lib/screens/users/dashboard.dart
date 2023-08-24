@@ -1,11 +1,11 @@
 //dashboard.dart
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
+import 'package:knust_lab/colors.dart';
+import 'package:knust_lab/screens/users/dashboard_timer.dart';
 import 'navigation_drawer.dart';
-import 'package:knust_lab/screens/services/notification_service.dart';
 
 class DashboardPage extends StatefulWidget {
   DashboardPage();
@@ -14,26 +14,20 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage>
+    with SingleTickerProviderStateMixin {
   final User? currentUser = FirebaseAuth.instance.currentUser;
-  late Timer _timer;
+  late DashboardTimer dashboardTimer;
 
   @override
   void initState() {
     super.initState();
-    _startTimer();
-  }
-
-  void _startTimer() {
-    // Update the timer every second
-    _timer = Timer.periodic(Duration(seconds: 1), (_) {
-      setState(() {});
-    });
+    dashboardTimer = DashboardTimer(); // Initialize
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    dashboardTimer.stopTimer(); // Stop the timer when disposing
     super.dispose();
   }
 
@@ -44,7 +38,7 @@ class _DashboardPageState extends State<DashboardPage> {
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
-              icon: Icon(Icons.menu),
+              icon: const Icon(Icons.menu),
               onPressed: () {
                 Scaffold.of(context).openDrawer();
               },
@@ -53,7 +47,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications),
             onPressed: () {
               Navigator.pushNamed(context, '/notifications');
             },
@@ -63,7 +57,7 @@ class _DashboardPageState extends State<DashboardPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
+          const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
               'Samples in Queue',
@@ -81,7 +75,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
@@ -161,21 +155,21 @@ class _DashboardPageState extends State<DashboardPage> {
   }) {
     Color statusColor = _getStatusColor(status);
     Color backgroundColor =
-        highlight ? Colors.blue.withOpacity(0.1) : Colors.white;
+        highlight ? customPrimaryColor.withOpacity(0.1) : Colors.white;
 
     if (highlight) {
       return Card(
         elevation: 2.0,
-        margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         color: backgroundColor,
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (status == 'Processing' && timerCompletionTimestamp != null)
                 _buildCountdownTimer(timerCompletionTimestamp),
-              Text(
+              const Text(
                 'Current User',
                 style: TextStyle(
                   fontSize: 16.0,
@@ -185,7 +179,7 @@ class _DashboardPageState extends State<DashboardPage> {
               if (name.isNotEmpty)
                 Text(
                   'Name: $name',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -194,21 +188,21 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   Text(
                     id,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18.0,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 4.0),
                     decoration: BoxDecoration(
                       color: statusColor,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Text(
                       status,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -223,28 +217,29 @@ class _DashboardPageState extends State<DashboardPage> {
     } else {
       return Card(
         elevation: 2.0,
-        margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 id,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
                 decoration: BoxDecoration(
                   color: statusColor,
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Text(
                   status,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -285,7 +280,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
       return Text(
         'Time left: $formattedRemainingTime',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
       );
     } else {
       return const Text(
