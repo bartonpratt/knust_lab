@@ -36,7 +36,7 @@ The KNUST Lab App is a mobile application built using Flutter that allows users 
 4. Install Flutter dependencies:
    flutter pub get
 
-5. Make sure you have an Android or iOS emulator set up, or a physical device connected.
+5. Make sure you have an Android emulator set up, or a physical device connected.
   
 6. Run the app:
    flutter run
