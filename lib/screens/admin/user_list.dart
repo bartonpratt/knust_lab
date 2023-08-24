@@ -185,6 +185,7 @@ class _UserListState extends State<UserList> {
                 borderRadius: BorderRadius.circular(20.0),
               ),
             ),
+            keyboardType: TextInputType.number,
           ),
         ),
         Expanded(
