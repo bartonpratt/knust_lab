@@ -70,7 +70,10 @@ class MyApp extends StatelessWidget {
       ),
       darkTheme: ThemeData(
         primarySwatch: customPrimarySwatch,
+<<<<<<< HEAD
         visualDensity: VisualDensity.adaptivePlatformDensity,
+=======
+>>>>>>> ba82850d9be8dc95e4eb62570d18df967c959c23
         brightness: Brightness.dark,
         primaryColor: customPrimaryColor,
         buttonTheme: const ButtonThemeData(
@@ -78,6 +81,7 @@ class MyApp extends StatelessWidget {
           buttonColor: customPrimaryColor,
         ),
       ),
+      themeMode: ThemeMode.dark,
       initialRoute: initialRoute,
       navigatorKey: navigatorKey,
       routes: {
