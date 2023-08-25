@@ -63,16 +63,31 @@ class _UserListState extends State<UserList> {
         'timerCompletionTimestamp': timerCompletionTimestamp,
       });
       debugPrint('Your status has been updated to $status');
+
+      // If status is "Completed", send doctor's appointment notification
+      if (status == UserStatus.completed) {
+        // Send doctor's appointment notification regardless of the timer
+        final doctorNotificationData = {
+          'title': 'Doctor Appointment',
+          'body': 'You can now go and see the doctor',
+          'timestamp': DateTime.now(),
+        };
+        userNotificationsCollection.doc(userId).update({
+          'notifications': FieldValue.arrayUnion([doctorNotificationData]),
+        }).then((_) {
+          debugPrint('Doctor appointment notification added to user $userId');
+        }).catchError((error) {
+          debugPrint(
+              'Failed to add doctor appointment notification to user $userId: $error');
+        });
+      }
+
       // Set a timer to automatically change status to "Completed"
       Timer(timerDuration, () async {
+        // Update status to "Completed"
         await userDocRef.update({
           'status': UserStatus.completed,
         });
-
-        await NotificationService().sendStatusUpdateNotification(
-          userId: userId,
-          newStatus: status,
-        );
       });
 
       // Send notification to user
@@ -95,22 +110,6 @@ class _UserListState extends State<UserList> {
             'notifications': FieldValue.arrayUnion([notificationData])
           }).then((_) {
             debugPrint('Notification added to user $userId');
-            if (status == UserStatus.completed) {
-              final doctorNotificationData = {
-                'title': 'Doctor Appointment',
-                'body': 'You can now go and see the doctor',
-                'timestamp': DateTime.now(),
-              };
-              userNotificationsCollection.doc(userId).update({
-                'notifications': FieldValue.arrayUnion([doctorNotificationData])
-              }).then((_) {
-                debugPrint(
-                    'Doctor appointment notification added to user $userId');
-              }).catchError((error) {
-                debugPrint(
-                    'Failed to add doctor appointment notification to user $userId: $error');
-              });
-            }
           }).catchError((error) {
             debugPrint('Failed to add notification to user $userId: $error');
           });
