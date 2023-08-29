@@ -52,4 +52,4 @@ Contributions are welcome! If you find a bug or want to add a new feature, pleas
 ****Acknowledgements****
 
 Special thanks to God for how far He has brought us.
-Also, a big thank you to our supervisor, Dr. Gaddaffi for guiding us throghout the process.
+Also, a big thank you to our supervisor, Dr. Gaddafi Abdul-Salaam for guiding us throughout the process.
